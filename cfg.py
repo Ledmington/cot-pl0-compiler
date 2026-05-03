@@ -142,7 +142,7 @@ class BasicBlock(object):
 
 def stat_list_to_bb(sl):
     """Support function for converting AST StatList to BBs"""
-    from ir2 import BranchStat, CallStat
+    from ir2 import BranchStatement, CallStatement
 
     bbs = []
     newbb = []
@@ -165,7 +165,7 @@ def stat_list_to_bb(sl):
 
         newbb.append(n)
 
-        if isinstance(n, BranchStat) or isinstance(n, CallStat):
+        if isinstance(n, BranchStatement) or isinstance(n, CallStatement):
             bb = BasicBlock(None, newbb, labels)
             newbb = []
             if len(bbs):
@@ -186,10 +186,10 @@ class CFG(list):
 
     def __init__(self, root):
         super().__init__()
-        from ir2 import StatList
+        from ir2 import StatementList
         from st import LabelType
 
-        stat_lists = [n for n in get_node_list(root) if isinstance(n, StatList)]
+        stat_lists = [n for n in get_node_list(root) if isinstance(n, StatementList)]
         self += sum([stat_list_to_bb(sl) for sl in stat_lists], [])
         for bb in self:
             if bb.target:

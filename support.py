@@ -105,7 +105,7 @@ def dotty_wrapper(fout):
 
     def dotty_function(irnode):
         """A function to print out the dot output"""
-        from ir2 import Stat
+        from ir2 import Statement
 
         attrs = {
             "body",
@@ -120,7 +120,7 @@ def dotty_wrapper(fout):
         } & set(dir(irnode))
 
         res = repr(id(irnode)) + " ["
-        if isinstance(irnode, Stat):
+        if isinstance(irnode, Statement):
             res += "shape=box,"
         res += 'label="' + repr(type(irnode)) + " " + repr(id(irnode))
         try:

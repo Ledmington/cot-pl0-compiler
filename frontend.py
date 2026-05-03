@@ -6,8 +6,24 @@ import logging
 import ir2
 
 ir2.setup("arm_ir")  # configurable target
-from ir2 import BinExpr, UnExpr, WhileStat, AssignStat, IfStat, Var, Const, CallExpr
-from ir2 import FunctionDef, DefinitionList, Block, CallStat, StatList, PrintStat
+from ir2 import (
+    BinExpression,
+    UnaryExpression,
+    WhileStatement,
+    AssignStatement,
+    IfStatement,
+    Var,
+    Const,
+    CallExpression,
+)
+from ir2 import (
+    FunctionDef,
+    DefinitionList,
+    Block,
+    CallStatement,
+    StatementList,
+    PrintStatement,
+)
 from logger import logger
 import lexer
 
@@ -82,7 +98,7 @@ def term(symtab):
         getsym()
         op = sym
         expr2 = factor(symtab)
-        expr = BinExpr(operator=op, op1=expr, op2=expr2, symtab=symtab)
+        expr = BinExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
     return expr
 
 
@@ -94,19 +110,21 @@ def expression(symtab):
         op = sym
     expr = term(symtab)
     if op:
-        expr = UnExpr(operator=initial_op, operand=expr, symtab=symtab)
+        expr = UnaryExpression(operator=initial_op, operand=expr, symtab=symtab)
     while new_sym in ["plus", "minus"]:
         getsym()
         op = sym
         expr2 = term(symtab)
-        expr = BinExpr(operator=op, op1=expr, op2=expr2, symtab=symtab)
+        expr = BinExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
     return expr
 
 
 @logger
 def condition(symtab):
     if accept("oddsym"):
-        return UnExpr(operator="odd", operand=expression(symtab), symtab=symtab)
+        return UnaryExpression(
+            operator="odd", operand=expression(symtab), symtab=symtab
+        )
     else:
         expr = expression(symtab)
         if new_sym in ["eql", "neq", "lss", "leq", "gtr", "geq"]:
@@ -114,7 +132,7 @@ def condition(symtab):
             logging.debug("condition operator {} {}".format(sym, new_sym))
             op = sym
             expr2 = expression(symtab)
-            return BinExpr(operator=op, op1=expr, op2=expr2, symtab=symtab)
+            return BinExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
         else:
             error("condition: invalid operator")
             getsym()
@@ -127,15 +145,15 @@ def statement(symtab):
         target = symtab.find(value)
         expect("becomes")
         expr = expression(symtab)
-        return AssignStat(target=target, expr=expr, symtab=symtab)
+        return AssignStatement(target=target, expr=expr, symtab=symtab)
     elif accept("callsym"):
         expect("ident")
-        return CallStat(
-            call_expr=CallExpr(function=symtab.find(value), symtab=symtab),
+        return CallStatement(
+            call_expr=CallExpression(function=symtab.find(value), symtab=symtab),
             symtab=symtab,
         )
     elif accept("beginsym"):
-        statement_list = StatList(symtab=symtab)
+        statement_list = StatementList(symtab=symtab)
         statement_list.append(statement(symtab))
         while accept("semicolon") == 0:
             statement_list.append(statement(symtab))
@@ -146,15 +164,15 @@ def statement(symtab):
         cond = condition(symtab)
         expect("thensym")
         then = statement(symtab)
-        return IfStat(cond=cond, thenpart=then, symtab=symtab)
+        return IfStatement(cond=cond, thenpart=then, symtab=symtab)
     elif accept("whilesym"):
         cond = condition(symtab)
         expect("dosym")
         body = statement(symtab)
-        return WhileStat(cond=cond, body=body, symtab=symtab)
+        return WhileStatement(cond=cond, body=body, symtab=symtab)
     elif accept("print"):
         expect("ident")
-        return PrintStat(symbol=symtab.find(value), symtab=symtab)
+        return PrintStatement(symbol=symtab.find(value), symtab=symtab)
 
     return None
 

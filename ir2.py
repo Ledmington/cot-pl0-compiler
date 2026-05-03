@@ -95,7 +95,7 @@ class Const(IRNode):
     def lower(self):
         reg = getRegister()
         self.symtab.append(reg)
-        node = LoadStat(self.parent, self.value, reg, self.symtab)
+        node = LoadStatement(self.parent, self.value, reg, self.symtab)
         return self.parent.replace(self, node)
 
 
@@ -109,15 +109,15 @@ class Var(IRNode):
     def lower(self):
         reg = getRegister()
         self.symtab.append(reg)
-        node = LoadStat(self.parent, self.symbol, reg, self.symtab)
+        node = LoadStatement(self.parent, self.symbol, reg, self.symtab)
         return self.parent.replace(self, node)
 
 
 # EXPRESSION
 
 
-class Expr(IRNode):
-    """Expression base node, characterised by an operator field"""
+class Expression(IRNode):
+    """Expression base node, characterized by an operator field"""
 
     pass
 
@@ -125,11 +125,11 @@ class Expr(IRNode):
         return self.operator
 
 
-class BinExpr(Expr):
-    """Binary Expression node, characterised by an operator field and two operands"""
+class BinExpression(Expression):
+    """Binary Expression node, characterized by an operator field and two operands"""
 
     def __init__(self, parent=None, operator=None, op1=None, op2=None, symtab=None):
-        super(BinExpr, self).__init__(parent, symtab, operator, op1, op2)
+        super(BinExpression, self).__init__(parent, symtab, operator, op1, op2)
         self.mapping = ["operator", "op1", "op2"]
 
     def getOperands(self):
@@ -138,18 +138,18 @@ class BinExpr(Expr):
     def lower(self):
         reg = getRegister()
         self.symtab.append(reg)
-        node = BinStat(
+        node = BinaryStatement(
             self, self.operator, reg, self.op1.dest, self.op2.dest, self.symtab
         )
-        slist = StatList(self.parent, children=[self.op1, self.op2, node])
+        slist = StatementList(self.parent, children=[self.op1, self.op2, node])
         return self.parent.replace(self, slist)
 
 
-class UnExpr(Expr):
-    """Unary Expression node, characterised by an operator field and an operand"""
+class UnaryExpression(Expression):
+    """Unary Expression node, characterized by an operator field and an operand"""
 
     def __init__(self, parent=None, operator=None, operand=None, symtab=None):
-        super(UnExpr, self).__init__(parent, symtab, operand, operand)
+        super(UnaryExpression, self).__init__(parent, symtab, operand, operand)
         self.mapping = ["operator", "operand"]
 
     def getOperand(self):
@@ -158,19 +158,19 @@ class UnExpr(Expr):
     def lower(self):
         reg = getRegister()
         self.symtab.append(reg)
-        node = BinStat(self, self.operator, reg, self.operand.dest, self.symtab)
-        slist = StatList(self.parent, children=[self.operand, node])
+        node = BinaryStatement(self, self.operator, reg, self.operand.dest, self.symtab)
+        slist = StatementList(self.parent, children=[self.operand, node])
         return self.parent.replace(self, slist)
 
 
-class CallExpr(Expr):
-    """Call Expression node, characterised by a target function and a parameters list"""
+class CallExpression(Expression):
+    """Call Expression node, characterized by a target function and a parameters list"""
 
     def __init__(self, parent=None, function=None, parameters=None, symtab=None):
         children = [function]
         if parameters:
             children += parameters
-        super(CallExpr, self).__init__(parent, symtab, *children)
+        super(CallExpression, self).__init__(parent, symtab, *children)
         self.mapping = ["function"]
 
     def getTargetFunction(self):
@@ -184,7 +184,7 @@ class CallExpr(Expr):
         return self.parent.replace(self, node)
 
 
-class Stat(IRNode):
+class Statement(IRNode):
     """Statement base node; can have a label"""
 
     def setLabel(self, label):
@@ -216,159 +216,161 @@ class Stat(IRNode):
         return self.__repr__()
 
 
-class CallStat(Stat):
+class CallStatement(Statement):
     """Procedure call (non-returning)"""
 
     def __init__(self, parent=None, call_expr=None, symtab=None):
-        super(CallStat, self).__init__(parent, symtab, call_expr)
+        super(CallStatement, self).__init__(parent, symtab, call_expr)
         self.mapping = ["call_expr"]
 
 
-class IfStat(Stat):
+class IfStatement(Statement):
     """Conditional statement node"""
 
     def __init__(
         self, parent=None, cond=None, thenpart=None, elsepart=None, symtab=None
     ):
-        super(IfStat, self).__init__(parent, symtab, cond, thenpart, elsepart)
+        super(IfStatement, self).__init__(parent, symtab, cond, thenpart, elsepart)
         self.mapping = ["cond", "thenpart", "elsepart"]
 
     def lower(self):
         if self.elsepart:
             raise Exception("Lowering of if-else not implemented yet!")
         out_label = standard_types["label"]()
-        end = EmptyStat()
+        end = EmptyStatement()
         end.setLabel(out_label)
         reg = getRegister()
         self.symtab.append(reg)
-        ncond = UnStat(self.parent, "-", reg, self.cond.dest, self.symtab)
-        branch = BranchStat(
+        ncond = UnaryStatement(self.parent, "-", reg, self.cond.dest, self.symtab)
+        branch = BranchStatement(
             self.parent, self.cond.operator, ncond.dest, out_label, self.symtab
         )
-        slist = StatList(
+        slist = StatementList(
             self.parent, children=[self.cond, ncond, branch, thenpart, end]
         )
         return self.parent.replace(self, slist)
 
 
-class WhileStat(Stat):
+class WhileStatement(Statement):
     """While loop statement node"""
 
     def __init__(self, parent=None, cond=None, body=None, symtab=None):
-        super(WhileStat, self).__init__(parent, symtab, cond, body)
+        super(WhileStatement, self).__init__(parent, symtab, cond, body)
         self.mapping = ["cond", "body"]
 
     def lower(self):
         out_label = standard_types["label"]()
         back_label = standard_types["label"]()
-        end = EmptyStat()
+        end = EmptyStatement()
         end.setLabel(out_label)
         reg = getRegister()
         self.symtab.append(reg)
-        branch_out = BranchStat(
+        branch_out = BranchStatement(
             self.parent,
             negate_operator(self.cond.operator),
             reg,
             out_label,
             self.symtab,
         )
-        branch_back = BranchStat(self.parent, None, None, back_label, self.symtab)
+        branch_back = BranchStatement(self.parent, None, None, back_label, self.symtab)
         self.cond.setLabel(back_label)
         logging.debug("{} attached to {}".format(self.cond.getLabel(), self.cond))
-        slist = StatList(
+        slist = StatementList(
             self.parent, children=[self.cond, branch_out, self.body, branch_back, end]
         )
         return self.parent.replace(self, slist)
 
 
-class AssignStat(Stat):
+class AssignStatement(Statement):
     """Assignment statement node (writes to a variable the value of an expression)"""
 
     def __init__(self, parent=None, target=None, expr=None, symtab=None):
-        super(AssignStat, self).__init__(parent, symtab, target, expr)
+        super(AssignStatement, self).__init__(parent, symtab, target, expr)
         self.mapping = ["target", "expr"]
 
     def lower(self):
-        node = StoreStat(self.parent, self.target, self.expr.dest, self.symtab)
-        slist = StatList(self.parent, children=[self.expr, node])
+        node = StoreStatement(self.parent, self.target, self.expr.dest, self.symtab)
+        slist = StatementList(self.parent, children=[self.expr, node])
         return self.parent.replace(self, slist)
 
 
 # LOW LEVEL REPRESENTATION
 
 
-class BranchStat(Stat):
+class BranchStatement(Statement):
     """Branch statement node (low level)"""
 
     def __init__(self, parent=None, operator=None, src=None, target=None, symtab=None):
-        super(BranchStat, self).__init__(parent, symtab, operator, src, target)
+        super(BranchStatement, self).__init__(parent, symtab, operator, src, target)
         self.mapping = ["operator", "src", "target"]
 
     def is_unconditional(self):
         return self.operator
 
 
-class BranchLinkStat(BranchStat):
+class BranchLinkStat(BranchStatement):
     """Branch and link statement node"""
 
     pass
 
 
-class EmptyStat(Stat):
+class EmptyStatement(Statement):
     """NOP-like statement, useful to attach a label at the end of a code block without need to know what is next"""
 
     pass
 
 
-class StoreStat(Stat):
+class StoreStatement(Statement):
     """Store-to-memory statement node"""
 
     def __init__(self, parent=None, symbol=None, src=None, symtab=None):
-        super(StoreStat, self).__init__(parent, symtab, symbol, src)
+        super(StoreStatement, self).__init__(parent, symtab, symbol, src)
         self.mapping = ["symbol", "src"]
 
 
-class LoadStat(Stat):
+class LoadStatement(Statement):
     """Load-from-memory statement node"""
 
     def __init__(self, parent=None, symbol=None, dest=None, symtab=None):
-        super(LoadStat, self).__init__(parent, symtab, dest, symbol)
+        super(LoadStatement, self).__init__(parent, symtab, dest, symbol)
         self.mapping = ["dest", "symbol"]
 
 
-class BinStat(Stat):
+class BinaryStatement(Statement):
     """Binary statement node (three operand instruction R1 = R2 op R3)"""
 
     def __init__(
         self, parent=None, operator=None, dest=None, src1=None, src2=None, symtab=None
     ):
-        super(BinStat, self).__init__(parent, symtab, operator, dest, src1, src2)
+        super(BinaryStatement, self).__init__(
+            parent, symtab, operator, dest, src1, src2
+        )
         self.mapping = ["operator", "dest", "src1", "src2"]
 
 
-class UnStat(Stat):
+class UnaryStatement(Statement):
     """Unary statement node (two operand instruction R1 = op R2)"""
 
     def __init__(self, parent=None, operator=None, dest=None, src=None, symtab=None):
-        super(UnStat, self).__init__(parent, symtab, operator, dest, src)
+        super(UnaryStatement, self).__init__(parent, symtab, operator, dest, src)
         self.mapping = ["operator", "dest", "src"]
 
 
-class PrintStat(Stat):
+class PrintStatement(Statement):
     """Built-in function to print variable value"""
 
     def __init__(self, parent=None, symbol=None, symtab=None):
-        super(PrintStat, self).__init__(parent, symtab, symbol)
+        super(PrintStatement, self).__init__(parent, symtab, symbol)
         self.mapping = ["symbol"]
 
 
-class ReturnStat(Stat):
+class ReturnStatement(Statement):
     """Return statement node"""
 
     pass
 
 
-class FunctionPrologueStat(Stat):
+class FunctionPrologueStatement(Statement):
     """Return statement node"""
 
     pass
@@ -377,7 +379,7 @@ class FunctionPrologueStat(Stat):
 # COMPOUND NODES
 
 
-class StatList(Stat):
+class StatementList(Statement):
     """Statement List: allows to define sequences of instructions; used both in high and low level representation with the same meaning; offers facilities for flattening nested StatLists"""
 
     def __init__(self, parent=None, children=None, symtab=None):
@@ -428,7 +430,7 @@ class StatList(Stat):
 
     def flatten(self):
         """Remove nested StatLists"""
-        if type(self.parent) == StatList:
+        if type(self.parent) == StatementList:
             logging.debug("Flattening {} into {}".format(id(self), id(self.parent)))
             for c in self.children:
                 c.parent = self.parent
@@ -446,7 +448,7 @@ class StatList(Stat):
             return False
 
 
-class Block(Stat):
+class Block(Statement):
     """Scope block node"""
 
     def __init__(self, parent=None, gl_sym=None, lc_sym=None, defs=None, body=None):
@@ -457,9 +459,9 @@ class Block(Stat):
 
     def lower(self):
         if not self.parent:  # Global Block
-            new_pr = FunctionPrologueStat()
-            new_ep = ReturnStat()
-            stlist = StatList(
+            new_pr = FunctionPrologueStatement()
+            new_ep = ReturnStatement()
+            stlist = StatementList(
                 self, children=[new_pr, self.body, new_ep], symtab=self.body.symtab
             )
             self.body = stlist
@@ -522,9 +524,9 @@ class FunctionDef(Definition):
         )
 
     def lower(self):
-        new_pr = FunctionPrologueStat()
-        new_ep = ReturnStat()
-        slist = StatList(self, children=[new_pr, self.body, new_ep])
+        new_pr = FunctionPrologueStatement()
+        new_ep = ReturnStatement()
+        slist = StatementList(self, children=[new_pr, self.body, new_ep])
         self.body = slist
 
 
@@ -565,5 +567,5 @@ def setup(target):
 
 
 if __name__ == "__main__":
-    TEST = CallExpr(function="pippo", parameters=["pluto", 1])
+    TEST = CallExpression(function="pippo", parameters=["pluto", 1])
     print(TEST)
