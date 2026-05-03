@@ -1,3 +1,8 @@
 .idea/
 .venv/
 __pycache__/
+*.dot
+*.pdf
+*.out
+*.s
+*.log
