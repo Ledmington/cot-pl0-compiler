@@ -402,7 +402,6 @@ class StatList(Stat):
         self.children.insert(index, elem)
 
     def append(self, elem):
-        print(f"elem = '{elem}'")
         elem.parent = self
         logging.debug(
             "StatList: appending {} of type {} to {}".format(

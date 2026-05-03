@@ -5,7 +5,7 @@ from st import standard_types, getRegister
 from lexer import negate_operator
 
 target_info = {
-    "available_register": 10,
+    "available_registers": 10,
 }
 
 

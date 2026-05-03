@@ -45,7 +45,7 @@ def error(msg):
     logging.error(msg + " {} {}".format(new_sym, new_value))
 
 
-def accept(s) -> int:
+def accept(s:str) -> int:
     logging.debug("accepting {} == {}".format(s, new_sym))
     return getsym() if new_sym == s else 0
 
@@ -123,7 +123,6 @@ def condition(symtab):
 
 @logger
 def statement(symtab):
-    print(f"new_sym = '{new_sym}'")
     if accept("ident"):
         target = symtab.find(value)
         expect("becomes")
@@ -138,10 +137,8 @@ def statement(symtab):
     elif accept("beginsym"):
         statement_list = StatList(symtab=symtab)
         statement_list.append(statement(symtab))
-        while accept("semicolon"):
-            stat = statement(symtab)
-            print(f"stat = '{stat}'")
-            statement_list.append(stat)
+        while accept("semicolon") == 0:
+            statement_list.append(statement(symtab))
         expect("endsym")
         statement_list.print_content()
         return statement_list
@@ -159,8 +156,7 @@ def statement(symtab):
         expect("ident")
         return PrintStat(symbol=symtab.find(value), symtab=symtab)
 
-    # unreachable
-    # return None
+    return None
 
 
 @logger

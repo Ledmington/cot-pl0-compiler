@@ -51,7 +51,7 @@ def negate_operator(op):
     return None
 
 
-def token(word):
+def token(word: str) -> str:
     """Return corresponding token for a given word"""
     for s in symbols:
         if word in symbols[s]:
@@ -63,7 +63,7 @@ def token(word):
         return "ident"
 
 
-def lexer(text):
+def lexer(text: str):
     """Generator implementation of a lexer"""
     import re
 
