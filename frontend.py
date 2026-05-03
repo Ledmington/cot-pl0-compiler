@@ -7,17 +7,17 @@ import ir2
 
 ir2.setup("arm_ir")  # configurable target
 from ir2 import (
-    BinExpression,
+    BinaryExpression,
     UnaryExpression,
     WhileStatement,
     AssignStatement,
     IfStatement,
-    Var,
-    Const,
+    Variable,
+    Constant,
     CallExpression,
 )
 from ir2 import (
-    FunctionDef,
+    FunctionDefinition,
     DefinitionList,
     Block,
     CallStatement,
@@ -77,9 +77,9 @@ def expect(s) -> int:
 @logger
 def factor(symtab):
     if accept("ident"):
-        return Var(var=symtab.find(value), symtab=symtab)
+        return Variable(var=symtab.find(value), symtab=symtab)
     if accept("number"):
-        return Const(value=value, symtab=symtab)
+        return Constant(value=value, symtab=symtab)
     elif accept("lparen"):
         expr = expression()
         expect("rparen")
@@ -98,7 +98,7 @@ def term(symtab):
         getsym()
         op = sym
         expr2 = factor(symtab)
-        expr = BinExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
+        expr = BinaryExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
     return expr
 
 
@@ -115,7 +115,7 @@ def expression(symtab):
         getsym()
         op = sym
         expr2 = term(symtab)
-        expr = BinExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
+        expr = BinaryExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
     return expr
 
 
@@ -132,7 +132,7 @@ def condition(symtab):
             logging.debug("condition operator {} {}".format(sym, new_sym))
             op = sym
             expr2 = expression(symtab)
-            return BinExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
+            return BinaryExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
         else:
             error("condition: invalid operator")
             getsym()
@@ -208,7 +208,7 @@ def block(symtab):
         local_vars.append(Symbol(fname, standard_types["function"]))
         fbody = block(local_vars)
         expect("semicolon")
-        defs.append(FunctionDef(symbol=local_vars.find(fname), body=fbody))
+        defs.append(FunctionDefinition(symbol=local_vars.find(fname), body=fbody))
     the_block = Block(gl_sym=symtab, lc_sym=local_vars, defs=defs, body=None)
     stat = statement(local_vars)
     the_block.body = stat

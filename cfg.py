@@ -207,13 +207,13 @@ class CFG(list):
                     break
             if head:
                 defs.append(bb1)
-        from ir2 import FunctionDef
+        from ir2 import FunctionDefinition
 
         res = {}
         for bb in defs:
             first = bb.instrs[0]
             parent = first.parent
-            while parent and type(parent) != FunctionDef:
+            while parent and type(parent) != FunctionDefinition:
                 parent = parent.parent
             if not parent:
                 res["global"] = bb

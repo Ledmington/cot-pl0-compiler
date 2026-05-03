@@ -80,7 +80,7 @@ class IRNode(object):
 # CONST & VAR
 
 
-class Const(IRNode):
+class Constant(IRNode):
     """Constant objects from the source code"""
 
     def __init__(self, parent=None, value=0, symb=None, symtab=None):
@@ -89,7 +89,7 @@ class Const(IRNode):
                 symb = standard_types["int"](value=int(value))
             except Exception:
                 symb = standard_types["float"](value=float(value))
-        super(Const, self).__init__(parent, symtab, symb)
+        super(Constant, self).__init__(parent, symtab, symb)
         self.mapping = ["value"]
 
     def lower(self):
@@ -99,11 +99,11 @@ class Const(IRNode):
         return self.parent.replace(self, node)
 
 
-class Var(IRNode):
+class Variable(IRNode):
     """Class representing read access to both local and global variables"""
 
     def __init__(self, parent=None, var=None, symtab=None):
-        super(Var, self).__init__(parent, symtab, var)
+        super(Variable, self).__init__(parent, symtab, var)
         self.mapping = ["symbol"]
 
     def lower(self):
@@ -125,11 +125,11 @@ class Expression(IRNode):
         return self.operator
 
 
-class BinExpression(Expression):
+class BinaryExpression(Expression):
     """Binary Expression node, characterized by an operator field and two operands"""
 
     def __init__(self, parent=None, operator=None, op1=None, op2=None, symtab=None):
-        super(BinExpression, self).__init__(parent, symtab, operator, op1, op2)
+        super(BinaryExpression, self).__init__(parent, symtab, operator, op1, op2)
         self.mapping = ["operator", "op1", "op2"]
 
     def getOperands(self):
@@ -206,7 +206,7 @@ class Statement(IRNode):
         """Find the function to which this statement belong, if any"""
         if not self.parent:
             return "global"
-        elif type(self.parent) == FunctionDef:
+        elif type(self.parent) == FunctionDefinition:
             return self.parent
         else:
             return self.parent.getFunction()
@@ -511,7 +511,7 @@ class Definition(IRNode):
         self.mapping = ["symbol"]
 
 
-class FunctionDef(Definition):
+class FunctionDefinition(Definition):
     """Function Definition node"""
 
     def __init__(self, parent=None, symbol=None, body=None):
