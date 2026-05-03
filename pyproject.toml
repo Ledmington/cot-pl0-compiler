@@ -1,0 +1,9 @@
+[project]
+name = "cot-pl0-compiler"
+version = "0.1.0"
+description = "A toy compiler from PL/0 to Aarch64"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "black>=26.3.1",
+]
