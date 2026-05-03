@@ -1,0 +1,67 @@
+digraph G {
+139923980065104 [label="BB139923980065104{\n[label main]\n'push {lr}'
+ { set([]) }
+'mov int4, #1'
+ { set([int int4 register]) }
+'ldr r12, =x\n\tstr int4, [r12]'
+ { set([]) }
+}"];
+139923980065104 -> 139923980141200 [label="set([int int11 register])"];
+139923980141200 [label="BB139923980141200{\n[label label2]\n'ldr r12, =x\n\tldr int5, [r12]'
+ { set([int int11 register, int int5 register]) }
+'mov int6, #10'
+ { set([int int6 register, int int5 register, int int11 register]) }
+'cmp int5, int6'
+ { set([int int11 register]) }
+'bgt label1'
+ { set([]) }
+}"];
+139923980141200 -> 139923980066768 [style=dashed,label="set([])"];
+139923980141392 [label="BB139923980141392{\n''
+ { set([]) }
+}"];
+139923980141392 -> 139923980141456 [label="set([int int11 register])"];
+139923980141456 [label="BB139923980141456{\n'ldr r12, =x\n\tldr int8, [r12]'
+ { set([int int8 register]) }
+'mov int9, #1'
+ { set([int int8 register, int int9 register]) }
+'add int10, int8, int9'
+ { set([int int10 register]) }
+'ldr r12, =x\n\tstr int10, [r12]'
+ { set([]) }
+'push {r0}\n\tldr r12, =squ\n\tldr r0, [r12]\n\tbl print\n\tpop {r0}'
+ { set([]) }
+'b label2'
+ { set([]) }
+}"];
+139923980141456 -> 139923980066768 [label="set([])"];
+139923980141456 -> 139923980141200 [style=dashed,label="set([int int11 register])"];
+139923980066768 [label="BB139923980066768{\n[label label1]\n''
+ { set([]) }
+'pop {pc}'
+ { set([]) }
+}"];
+139923980066768 -> exit139923980421952 [label="set([])"];
+139923980141008 [label="BB139923980141008{\n'push {lr}'
+ { set([]) }
+'\n'
+ { set([]) }
+'pop {pc}'
+ { set([]) }
+}"];
+139923980141008 -> exit139923980063376 [label="set([])"];
+139923980141584 [label="BB139923980141584{\n'ldr r12, =x\n\tldr int12, [r12]'
+ { set([int int12 register]) }
+'ldr r12, =x\n\tldr int13, [r12]'
+ { set([int int12 register, int int13 register]) }
+'mul r12, int12, int13\n\tmov int14, r12'
+ { set([int int14 register]) }
+'ldr r12, =squ\n\tstr int14, [r12]'
+ { set([]) }
+}"];
+139923980141584 -> exit139923980421952 [label="set([])"];
+square [shape=box];
+square -> 139923980141008 [label="set([])"];
+main [shape=box];
+main -> 139923980141584 [label="set([])"];
+}
