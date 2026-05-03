@@ -1,2 +1,9 @@
 A toy compiler from [PL/0](https://en.wikipedia.org/wiki/PL/0) to Aarch64.
 This is project for the course of Code Optimization and Transformation (a.y. 2025/2026) at Politecnico di Milano.
+
+This project uses `uv`.
+
+## How to run
+```bash
+uv run frontend.py
+```
