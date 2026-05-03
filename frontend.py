@@ -45,7 +45,7 @@ def error(msg):
     logging.error(msg + " {} {}".format(new_sym, new_value))
 
 
-def accept(s:str) -> int:
+def accept(s: str) -> int:
     logging.debug("accepting {} == {}".format(s, new_sym))
     return getsym() if new_sym == s else 0
 
