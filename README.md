@@ -7,3 +7,10 @@ This project uses `uv`.
 ```bash
 uv run frontend.py
 ```
+
+## How to test
+You can install `qemu-aarch64` with `apt install -y qemu-user` on Ubuntu/Debian.
+
+```bash
+qemu--aarch64 ./a.out
+```
