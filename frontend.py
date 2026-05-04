@@ -251,13 +251,25 @@ def run(source, target="arm"):
     res.navigate(codegeneration)
 
 
-if __name__ == "__main__":
+def main():
+    filename = "input.txt"
+    logging.debug("Reading input source from {}".format(filename))
+    source = open(filename, "r").read()
+
     logging.debug("""
 *********************************************
-	Starting debug with standard test program
+    Starting debug with program '{}'
 *********************************************
-""")
+    """.format(filename))
 
-    source = open("input.txt").read()
+    logging.debug("""
+***** Program '{}' source *****
+{}
+***** Program '{}' source *****
+""".format(filename, source, filename))
 
     run(source)
+
+
+if __name__ == "__main__":
+    main()
