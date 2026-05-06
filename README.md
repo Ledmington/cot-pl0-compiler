@@ -14,3 +14,10 @@ You can install `qemu-aarch64` with `apt install -y qemu-user` on Ubuntu/Debian.
 ```bash
 qemu--aarch64 ./a.out
 ```
+
+## How to contribute
+```bash
+uv run ruff format
+uv run ty check
+uv run pytest
+```
