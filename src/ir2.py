@@ -1,16 +1,24 @@
 #!/usr/bin/python3
 
+from __future__ import annotations
+
 import logging
 import importlib
+from typing import Optional
 
-from st import standard_types, getRegister
+from st import standard_types, getRegister, Symbol, SymbolTable
 from lexer import negate_operator
 
 
 class IRNode(object):
     """Base class for the Intermediate Representation, offers printing and tree traversal facilities"""
 
-    def __init__(self, parent=None, symtab=None, *children):
+    def __init__(
+        self,
+        parent: Optional[IRNode] = None,
+        symtab: Optional[SymbolTable] = None,
+        *children,
+    ):
         self.parent = parent
         self.symtab = symtab
         self.mapping = []
@@ -53,7 +61,7 @@ class IRNode(object):
         if post:
             action(self)
 
-    def replace(self, old, new):
+    def replace(self, old, new) -> bool:
         try:
             self.children[self.children.index(old)] = new
             return True
@@ -85,7 +93,13 @@ class IRNode(object):
 class Constant(IRNode):
     """Constant objects from the source code"""
 
-    def __init__(self, parent=None, value=0, symb=None, symtab=None):
+    def __init__(
+        self,
+        parent: Optional[IRNode] = None,
+        value=0,
+        symb=None,
+        symtab: Optional[list[Symbol]] = None,
+    ):
         if not symb:
             try:
                 symb = standard_types["int"](value=int(value))
@@ -104,7 +118,9 @@ class Constant(IRNode):
 class Variable(IRNode):
     """Class representing read access to both local and global variables"""
 
-    def __init__(self, parent=None, var=None, symtab=None):
+    def __init__(
+        self, parent=None, var=None, symtab: Optional[list[Symbol]] = None
+    ):
         super(Variable, self).__init__(parent, symtab, var)
         self.mapping = ["symbol"]
 
@@ -500,7 +516,12 @@ class Block(Statement):
     """Scope block node"""
 
     def __init__(
-        self, parent=None, gl_sym=None, lc_sym=None, defs=None, body=None
+        self,
+        parent: Optional[IRNode] = None,
+        gl_sym: SymbolTable = None,
+        lc_sym: SymbolTable = None,
+        defs=None,
+        body=None,
     ):
         lc_sym.setParent(gl_sym)
         lc_sym.setScopeBlock(self)

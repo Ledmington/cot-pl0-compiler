@@ -1,6 +1,11 @@
 #!/usr/bin/python3
 
+
 import logging
+from symtable import SymbolTable
+from typing import Optional
+
+from src.ir2 import Block
 
 # SYMBOLS AND TYPES
 basetypes = ["Int", "Float", "Label", "Struct", "Function"]
@@ -8,7 +13,7 @@ qualifiers = ["unsigned"]
 
 
 class Type(object):
-    def __init__(self, name, size, basetype, qualifiers=None):
+    def __init__(self, name: str, size: int, basetype: str, qualifiers=None):
         if qualifiers is None:
             qualifiers = []
         self.name = name
@@ -34,7 +39,7 @@ class StructType(Type):
         )
         self.fields = fields
 
-    def getSize(self):
+    def getSize(self) -> int:
         return sum([f.size for f in self.fields])
 
 
@@ -70,7 +75,7 @@ standard_types = {
 
 
 class Symbol(object):
-    def __init__(self, name, stype, value=None):
+    def __init__(self, name: str, stype: Type, value=None):
         # NOTE: not all the following values are always meaningful
         # For example, offset is needed only for values in memory
         self.name = name
@@ -106,50 +111,55 @@ class LabelSymbol(Symbol):
     def codegen(self):
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "label " + self.name
 
 
 class SymbolTable(list):
-    def find(self, name):
+    def find(self, name: str) -> Optional[Symbol]:
         logging.debug("Looking up {}".format(name))
+
         for s in self:
             if s.name == name:
                 return s
+
         logging.debug("Looking up in parent")
+
         try:
             return self.parent.find(name)
         except Exception:
             pass
+
         logging.debug("Looking up failed!")
+
         return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         res = "SymbolTable:\n"
         for s in self:
             res += repr(s) + "\n"
         return res
 
-    def exclude(self, barred_types):
+    def exclude(self, barred_types: list[Type]) -> list[Type]:
         return [symb for symb in self if symb.stype not in barred_types]
 
-    def setParent(self, parent):
+    def setParent(self, parent: SymbolTable) -> None:
         self.parent = parent
 
-    def getParent(self):
+    def getParent(self) -> Optional[SymbolTable]:
         try:
             return self.parent
         except AttributeError:
             return None
 
-    def setScopeBlock(self, scope):
+    def setScopeBlock(self, scope: Block) -> None:
         self.block = scope
 
-    def getScopeBlock(self):
+    def getScopeBlock(self) -> Block:
         return self.block
 
 
-def getRegister(stype="int"):
+def getRegister(stype: str = "int") -> Symbol:
     reg = standard_types[stype]()
     reg.storage_class = "register"
     return reg

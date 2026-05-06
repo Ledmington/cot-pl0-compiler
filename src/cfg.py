@@ -5,22 +5,20 @@ Includes cfg construction and liveness analysis."""
 
 import logging
 from functools import reduce
+from typing import Any
 
 from support import get_node_list
 from ir2 import FunctionDefinition
 
 
 class BasicBlock(object):
-    def __init__(self, next=None, instrs=None, labels=None):
+    def __init__(self, next=None, instrs: list[Any] = [], labels=None):
         """Structure:
         Zero, one (next) or two (next, target_bb) successors
         Keeps information on labels
         """
         self.next = next
-        if instrs:
-            self.instrs = instrs
-        else:
-            self.instrs = []
+        self.instrs = instrs
 
         try:
             self.target = self.instrs[-1].target
