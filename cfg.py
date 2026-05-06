@@ -6,7 +6,7 @@ Includes cfg construction and liveness analysis."""
 import logging
 from functools import reduce
 
-from support import get_node_list, get_symbol_tables
+from support import get_node_list
 
 
 class BasicBlock(object):
@@ -194,7 +194,6 @@ class CFG(list):
     def __init__(self, root):
         super().__init__()
         from ir2 import StatementList
-        from st import LabelType
 
         stat_lists = [
             n for n in get_node_list(root) if isinstance(n, StatementList)
@@ -222,7 +221,7 @@ class CFG(list):
         for bb in defs:
             first = bb.instrs[0]
             parent = first.parent
-            while parent and type(parent) != FunctionDefinition:
+            while parent and isinstance(parent, FunctionDefinition):
                 parent = parent.parent
             if not parent:
                 res["global"] = bb

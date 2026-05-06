@@ -5,7 +5,7 @@ __doc__ = """PL/0 recursive descent parser adapted from Wikipedia"""
 import logging
 import ir2
 
-ir2.setup("arm_ir")  # configurable target
+# ir2.setup("arm_ir")  # configurable target
 from ir2 import (
     BinaryExpression,
     UnaryExpression,
@@ -27,8 +27,9 @@ from ir2 import (
 from logger import logger
 import lexer
 
-logging.basicConfig(filename="error.log", level=logging.DEBUG)
 from st import standard_types, Symbol, SymbolTable
+
+logging.basicConfig(filename="error.log", level=logging.DEBUG)
 
 symbols = lexer.symbols.keys()
 

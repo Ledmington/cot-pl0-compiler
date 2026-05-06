@@ -1,9 +1,5 @@
 #!/usr/bin/python3
 
-import logging
-from st import standard_types, getRegister
-from lexer import negate_operator
-
 target_info = {
     "available_registers": 10,
 }

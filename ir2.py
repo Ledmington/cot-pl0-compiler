@@ -216,7 +216,7 @@ class Statement(IRNode):
         """Find the function to which this statement belong, if any"""
         if not self.parent:
             return "global"
-        elif type(self.parent) == FunctionDefinition:
+        elif isinstance(self.parent, FunctionDefinition):
             return self.parent
         else:
             return self.parent.getFunction()
@@ -465,7 +465,7 @@ class StatementList(Statement):
 
     def flatten(self):
         """Remove nested StatLists"""
-        if type(self.parent) == StatementList:
+        if isinstance(self.parent, StatementList):
             logging.debug(
                 "Flattening {} into {}".format(id(self), id(self.parent))
             )
@@ -593,7 +593,6 @@ def subclasses(cls):
 def setup(target):
     func = lambda self: ""
     import importlib
-    from types import MethodType
 
     try:
         the_target = importlib.import_module(target)

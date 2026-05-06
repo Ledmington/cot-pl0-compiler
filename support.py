@@ -8,10 +8,10 @@ These functions expose high level interfaces (passes) for actions that can be ap
 def get_node_list(root):
     """Get a list of all nodes in the AST"""
 
-    def register_nodes(l):
+    def register_nodes(node_list):
         def r(node):
-            if node not in l:
-                l.append(node)
+            if node not in node_list:
+                node_list.append(node)
 
         return r
 
@@ -23,19 +23,19 @@ def get_node_list(root):
 def get_symbol_tables(root):
     """Get a list of all symtabs in the AST"""
 
-    def register_nodes(l):
+    def register_nodes(node_list):
         """Gets an empty symtab list, returns a function that populates it"""
 
         def r(node):
             """Given a node, adds its symbol table to the list"""
             try:
-                if node.symtab not in l:
-                    l.append(node.symtab)
+                if node.symtab not in node_list:
+                    node_list.append(node.symtab)
             except Exception:
                 pass
             try:
-                if node.lc_sym not in l:
-                    l.append(node.symtab)
+                if node.lc_sym not in node_list:
+                    node_list.append(node.symtab)
             except Exception:
                 pass
 
