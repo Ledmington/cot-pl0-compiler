@@ -128,8 +128,12 @@ class Expression(IRNode):
 class BinaryExpression(Expression):
     """Binary Expression node, characterized by an operator field and two operands"""
 
-    def __init__(self, parent=None, operator=None, op1=None, op2=None, symtab=None):
-        super(BinaryExpression, self).__init__(parent, symtab, operator, op1, op2)
+    def __init__(
+        self, parent=None, operator=None, op1=None, op2=None, symtab=None
+    ):
+        super(BinaryExpression, self).__init__(
+            parent, symtab, operator, op1, op2
+        )
         self.mapping = ["operator", "op1", "op2"]
 
     def getOperands(self):
@@ -158,7 +162,9 @@ class UnaryExpression(Expression):
     def lower(self):
         reg = getRegister()
         self.symtab.append(reg)
-        node = BinaryStatement(self, self.operator, reg, self.operand.dest, self.symtab)
+        node = BinaryStatement(
+            self, self.operator, reg, self.operand.dest, self.symtab
+        )
         slist = StatementList(self.parent, children=[self.operand, node])
         return self.parent.replace(self, slist)
 
@@ -166,7 +172,9 @@ class UnaryExpression(Expression):
 class CallExpression(Expression):
     """Call Expression node, characterized by a target function and a parameters list"""
 
-    def __init__(self, parent=None, function=None, parameters=None, symtab=None):
+    def __init__(
+        self, parent=None, function=None, parameters=None, symtab=None
+    ):
         children = [function]
         if parameters:
             children += parameters
@@ -180,7 +188,9 @@ class CallExpression(Expression):
         return self.children[1:]
 
     def lower(self):
-        node = BranchLinkStat(self.parent, None, None, self.function, self.symtab)
+        node = BranchLinkStat(
+            self.parent, None, None, self.function, self.symtab
+        )
         return self.parent.replace(self, node)
 
 
@@ -230,7 +240,9 @@ class IfStatement(Statement):
     def __init__(
         self, parent=None, cond=None, thenpart=None, elsepart=None, symtab=None
     ):
-        super(IfStatement, self).__init__(parent, symtab, cond, thenpart, elsepart)
+        super(IfStatement, self).__init__(
+            parent, symtab, cond, thenpart, elsepart
+        )
         self.mapping = ["cond", "thenpart", "elsepart"]
 
     def lower(self):
@@ -241,7 +253,9 @@ class IfStatement(Statement):
         end.setLabel(out_label)
         reg = getRegister()
         self.symtab.append(reg)
-        ncond = UnaryStatement(self.parent, "-", reg, self.cond.dest, self.symtab)
+        ncond = UnaryStatement(
+            self.parent, "-", reg, self.cond.dest, self.symtab
+        )
         branch = BranchStatement(
             self.parent, self.cond.operator, ncond.dest, out_label, self.symtab
         )
@@ -272,11 +286,16 @@ class WhileStatement(Statement):
             out_label,
             self.symtab,
         )
-        branch_back = BranchStatement(self.parent, None, None, back_label, self.symtab)
+        branch_back = BranchStatement(
+            self.parent, None, None, back_label, self.symtab
+        )
         self.cond.setLabel(back_label)
-        logging.debug("{} attached to {}".format(self.cond.getLabel(), self.cond))
+        logging.debug(
+            "{} attached to {}".format(self.cond.getLabel(), self.cond)
+        )
         slist = StatementList(
-            self.parent, children=[self.cond, branch_out, self.body, branch_back, end]
+            self.parent,
+            children=[self.cond, branch_out, self.body, branch_back, end],
         )
         return self.parent.replace(self, slist)
 
@@ -289,7 +308,9 @@ class AssignStatement(Statement):
         self.mapping = ["target", "expr"]
 
     def lower(self):
-        node = StoreStatement(self.parent, self.target, self.expr.dest, self.symtab)
+        node = StoreStatement(
+            self.parent, self.target, self.expr.dest, self.symtab
+        )
         slist = StatementList(self.parent, children=[self.expr, node])
         return self.parent.replace(self, slist)
 
@@ -300,8 +321,12 @@ class AssignStatement(Statement):
 class BranchStatement(Statement):
     """Branch statement node (low level)"""
 
-    def __init__(self, parent=None, operator=None, src=None, target=None, symtab=None):
-        super(BranchStatement, self).__init__(parent, symtab, operator, src, target)
+    def __init__(
+        self, parent=None, operator=None, src=None, target=None, symtab=None
+    ):
+        super(BranchStatement, self).__init__(
+            parent, symtab, operator, src, target
+        )
         self.mapping = ["operator", "src", "target"]
 
     def is_unconditional(self):
@@ -340,7 +365,13 @@ class BinaryStatement(Statement):
     """Binary statement node (three operand instruction R1 = R2 op R3)"""
 
     def __init__(
-        self, parent=None, operator=None, dest=None, src1=None, src2=None, symtab=None
+        self,
+        parent=None,
+        operator=None,
+        dest=None,
+        src1=None,
+        src2=None,
+        symtab=None,
     ):
         super(BinaryStatement, self).__init__(
             parent, symtab, operator, dest, src1, src2
@@ -351,8 +382,12 @@ class BinaryStatement(Statement):
 class UnaryStatement(Statement):
     """Unary statement node (two operand instruction R1 = op R2)"""
 
-    def __init__(self, parent=None, operator=None, dest=None, src=None, symtab=None):
-        super(UnaryStatement, self).__init__(parent, symtab, operator, dest, src)
+    def __init__(
+        self, parent=None, operator=None, dest=None, src=None, symtab=None
+    ):
+        super(UnaryStatement, self).__init__(
+            parent, symtab, operator, dest, src
+        )
         self.mapping = ["operator", "dest", "src"]
 
 
@@ -431,12 +466,16 @@ class StatementList(Statement):
     def flatten(self):
         """Remove nested StatLists"""
         if type(self.parent) == StatementList:
-            logging.debug("Flattening {} into {}".format(id(self), id(self.parent)))
+            logging.debug(
+                "Flattening {} into {}".format(id(self), id(self.parent))
+            )
             for c in self.children:
                 c.parent = self.parent
             i = self.parent.children.index(self)
             self.parent.children = (
-                self.parent.children[:i] + self.children + self.parent.children[i + 1 :]
+                self.parent.children[:i]
+                + self.children
+                + self.parent.children[i + 1 :]
             )
             return True
         else:
@@ -451,7 +490,9 @@ class StatementList(Statement):
 class Block(Statement):
     """Scope block node"""
 
-    def __init__(self, parent=None, gl_sym=None, lc_sym=None, defs=None, body=None):
+    def __init__(
+        self, parent=None, gl_sym=None, lc_sym=None, defs=None, body=None
+    ):
         lc_sym.setParent(gl_sym)
         lc_sym.setScopeBlock(self)
         super(Block, self).__init__(parent, lc_sym, defs, body)
@@ -462,7 +503,9 @@ class Block(Statement):
             new_pr = FunctionPrologueStatement()
             new_ep = ReturnStatement()
             stlist = StatementList(
-                self, children=[new_pr, self.body, new_ep], symtab=self.body.symtab
+                self,
+                children=[new_pr, self.body, new_ep],
+                symtab=self.body.symtab,
             )
             self.body = stlist
             self.body.setLabel(standard_types["label"]("main"))
@@ -559,7 +602,11 @@ def setup(target):
     for the_class in subclasses(IRNode):
         try:
             if issubclass(the_class, IRNode):
-                setattr(the_class, "codegen", eval("the_target." + the_class.__name__))
+                setattr(
+                    the_class,
+                    "codegen",
+                    eval("the_target." + the_class.__name__),
+                )
         except Exception:
             setattr(the_class, "codegen", func)
 

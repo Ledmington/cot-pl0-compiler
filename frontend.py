@@ -132,7 +132,9 @@ def condition(symtab):
             logging.debug("condition operator {} {}".format(sym, new_sym))
             op = sym
             expr2 = expression(symtab)
-            return BinaryExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
+            return BinaryExpression(
+                operator=op, op1=expr, op2=expr2, symtab=symtab
+            )
         else:
             error("condition: invalid operator")
             getsym()
@@ -149,7 +151,9 @@ def statement(symtab):
     elif accept("callsym"):
         expect("ident")
         return CallStatement(
-            call_expr=CallExpression(function=symtab.find(value), symtab=symtab),
+            call_expr=CallExpression(
+                function=symtab.find(value), symtab=symtab
+            ),
             symtab=symtab,
         )
     elif accept("beginsym"):
@@ -208,7 +212,9 @@ def block(symtab):
         local_vars.append(Symbol(fname, standard_types["function"]))
         fbody = block(local_vars)
         expect("semicolon")
-        defs.append(FunctionDefinition(symbol=local_vars.find(fname), body=fbody))
+        defs.append(
+            FunctionDefinition(symbol=local_vars.find(fname), body=fbody)
+        )
     the_block = Block(gl_sym=symtab, lc_sym=local_vars, defs=defs, body=None)
     stat = statement(local_vars)
     the_block.body = stat
@@ -231,7 +237,13 @@ def run(source, target="arm"):
     global the_lexer
     the_lexer = lexer.lexer(source)
     res = program()
-    from support import lowering, flattening, codegeneration, print_dotty, layout
+    from support import (
+        lowering,
+        flattening,
+        codegeneration,
+        print_dotty,
+        layout,
+    )
 
     res.navigate(lowering, post=True)
     res.navigate(flattening, post=True)

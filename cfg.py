@@ -77,7 +77,12 @@ class BasicBlock(object):
                 text = type(i)
             instrs += repr(text) + "\n { " + repr(i.live_out) + " }\n"
         res = (
-            repr(id(self)) + ' [label="BB' + repr(id(self)) + "{\\n" + instrs + '}"];\n'
+            repr(id(self))
+            + ' [label="BB'
+            + repr(id(self))
+            + "{\\n"
+            + instrs
+            + '}"];\n'
         )
         if self.next:
             res += (
@@ -120,7 +125,9 @@ class BasicBlock(object):
 
         if self.next or self.target_bb:
             self.live_out = reduce(
-                lambda x, y: x.union(y), [s.live_in for s in self.succ()], set([])
+                lambda x, y: x.union(y),
+                [s.live_in for s in self.succ()],
+                set([]),
             )
 
         self.live_in = self.gen.union(self.live_out - self.kill)
@@ -189,7 +196,9 @@ class CFG(list):
         from ir2 import StatementList
         from st import LabelType
 
-        stat_lists = [n for n in get_node_list(root) if isinstance(n, StatementList)]
+        stat_lists = [
+            n for n in get_node_list(root) if isinstance(n, StatementList)
+        ]
         self += sum([stat_list_to_bb(sl) for sl in stat_lists], [])
         for bb in self:
             if bb.target:
@@ -233,7 +242,11 @@ class CFG(list):
             if p == "global":
                 f.write("main [shape=box];\n")
                 f.write(
-                    "main -> " + repr(id(bb)) + ' [label="' + repr(bb.live_in) + '"];\n'
+                    "main -> "
+                    + repr(id(bb))
+                    + ' [label="'
+                    + repr(bb.live_in)
+                    + '"];\n'
                 )
             else:
                 f.write(p.symbol.name + " [shape=box];\n")
@@ -295,7 +308,11 @@ class CFG(list):
 
         def getInterf(r, ig):
             return set(
-                [x[1].register for x in ig if x[0] == r and x[1].register is not None]
+                [
+                    x[1].register
+                    for x in ig
+                    if x[0] == r and x[1].register is not None
+                ]
             )
 
         for r in regs:

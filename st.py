@@ -29,7 +29,9 @@ class ArrayType(Type):
 
 class StructType(Type):
     def __init__(self, name, size, fields):
-        super(StructType, self).__init__(name, sum([f.size for f in fields]), "Struct")
+        super(StructType, self).__init__(
+            name, sum([f.size for f in fields]), "Struct"
+        )
         self.fields = fields
 
     def getSize(self):
@@ -44,7 +46,9 @@ class LabelType(Type):
         self.ids += 1
         if value == "main":
             return LabelSymbol(name="main", stype=self, value=value)
-        return LabelSymbol(name=self.name + repr(self.ids), stype=self, value=value)
+        return LabelSymbol(
+            name=self.name + repr(self.ids), stype=self, value=value
+        )
 
 
 class FunctionType(Type):

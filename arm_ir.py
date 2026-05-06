@@ -78,7 +78,9 @@ def BinStat(self):
 
     elif self.operator in ["lss", "gtr", "eql", "neq", "geq", "leq"]:
         opcode = "cmp"
-        return "{} {}, {}".format(opcode, self.src1.codegen(), self.src2.codegen())
+        return "{} {}, {}".format(
+            opcode, self.src1.codegen(), self.src2.codegen()
+        )
     else:
         raise Exception("operator " + self.operator + " not implemented")
     return "{} {}, {}, {}".format(
@@ -104,12 +106,20 @@ def PrintStat(self):
             + self.symbol.codegen()
             + "\n\tldr r0, [r12]\n\tbl print\n\tpop {r0}"
         )
-    return "push {r0}\n\tldr r0, " + self.symbol.codegen() + "\n\tbl print\n\tpop {r0}"
+    return (
+        "push {r0}\n\tldr r0, "
+        + self.symbol.codegen()
+        + "\n\tbl print\n\tpop {r0}"
+    )
 
 
 def InputStat(self):
     if self.symbol.storage_class == "global":
-        return "bl read\n\tldr r12, =" + self.symbol.codegen() + "\n\tstr r0, [r12]"
+        return (
+            "bl read\n\tldr r12, ="
+            + self.symbol.codegen()
+            + "\n\tstr r0, [r12]"
+        )
     return "bl read\n\tstr r0, [sp, {}]".format(self.symbol.codegen())
 
 
