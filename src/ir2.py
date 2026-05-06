@@ -597,7 +597,7 @@ class Block(Statement):
         super(Block, self).__init__(parent, lc_sym, defs, body)
         self.mapping = ["defs", "body"]
 
-    def lower(self) -> bool:
+    def lower(self) -> None:
         if not self.parent:  # Global Block
             new_pr = FunctionPrologueStatement()
             new_ep = ReturnStatement()
@@ -640,9 +640,6 @@ class Block(Statement):
         self.defs.navigate(action, post)
         if post:
             action(self)
-
-
-# DEFINITIONS
 
 
 class Definition(IRNode):

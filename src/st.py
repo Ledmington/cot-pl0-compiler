@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
+from ir2 import Block
+
 # SYMBOLS AND TYPES
 basetypes = ["Int", "Float", "Label", "Struct", "Function"]
 qualifiers = ["unsigned"]
