@@ -7,6 +7,7 @@ import logging
 from functools import reduce
 
 from support import get_node_list
+from ir2 import FunctionDefinition
 
 
 class BasicBlock(object):
@@ -215,7 +216,10 @@ class CFG(list):
                     break
             if head:
                 defs.append(bb1)
-        from ir2 import FunctionDefinition
+
+        print(" ### DEFS ### ")
+        print(defs)
+        print(" ### DEFS ### ")
 
         res = {}
         for bb in defs:
@@ -227,38 +231,48 @@ class CFG(list):
                 res["global"] = bb
             else:
                 res[parent] = bb
+
+        print(" ### RES ### ")
+        print(res)
+        print(" ### RES ### ")
+
         return res
 
     def print_cfg_to_dot(self, filename):
         """Print the CFG in graphviz dot to file"""
-        f = open(filename, "w")
-        f.write("digraph G {\n")
-        for n in self:
-            f.write(repr(n))
-        h = self.heads()
-        for p in h:
-            bb = h[p]
-            if p == "global":
-                f.write("main [shape=box];\n")
-                f.write(
-                    "main -> "
-                    + repr(id(bb))
-                    + ' [label="'
-                    + repr(bb.live_in)
-                    + '"];\n'
-                )
-            else:
-                f.write(p.symbol.name + " [shape=box];\n")
-                f.write(
-                    p.symbol.name
-                    + " -> "
-                    + repr(id(bb))
-                    + ' [label="'
-                    + repr(bb.live_in)
-                    + '"];\n'
-                )
-        f.write("}\n")
-        f.close()
+        print("writing to '{filename}'".format(filename=filename))
+        with open(filename, "w") as f:
+            f.write("digraph G {\n")
+            for n in self:
+                f.write(repr(n))
+            h = self.heads()
+
+            print(" ### HEADS ###")
+            print(h)
+            print(" ### HEADS ###")
+
+            for p in h:
+                bb = h[p]
+                if p == "global":
+                    f.write("main [shape=box];\n")
+                    f.write(
+                        "main -> "
+                        + repr(id(bb))
+                        + ' [label="'
+                        + repr(bb.live_in)
+                        + '"];\n'
+                    )
+                else:
+                    f.write(p.symbol.name + " [shape=box];\n")
+                    f.write(
+                        p.symbol.name
+                        + " -> "
+                        + repr(id(bb))
+                        + ' [label="'
+                        + repr(bb.live_in)
+                        + '"];\n'
+                    )
+            f.write("}\n")
 
     def print_liveness(self):
         print("Liveness sets")

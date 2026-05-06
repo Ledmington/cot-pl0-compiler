@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import logging
+from typing import Callable
+
 from st import standard_types, getRegister
 from lexer import negate_operator
 
@@ -533,7 +535,7 @@ class Block(Statement):
             self.symtab.size = off
         return True
 
-    def navigate(self, action, post=False):
+    def navigate(self, action, post: bool = False) -> None:
         """Redefine navigate to force main to be generated before other functions"""
         if not post:
             action(self)

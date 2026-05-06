@@ -4,8 +4,14 @@ import logging
 __doc__ = """Support functions for visiting the AST
 These functions expose high level interfaces (passes) for actions that can be applied to multiple IR nodes."""
 
+from pathlib import Path
 
-def get_node_list(root):
+from typing import Any, Callable
+
+from ir2 import Statement, Block
+
+
+def get_node_list(root: Block):
     """Get a list of all nodes in the AST"""
 
     def register_nodes(node_list):
@@ -100,13 +106,11 @@ def codegeneration(node):
         logging.debug("{} {}".format(type(node), e))
 
 
-def dotty_wrapper(fout):
+def dotty_wrapper(fout) -> Callable[..., str | Any]:
     """Main function for graphviz dot output generation"""
 
     def dotty_function(irnode):
         """A function to print out the dot output"""
-        from ir2 import Statement
-
         attrs = {
             "body",
             "cond",
@@ -123,18 +127,22 @@ def dotty_wrapper(fout):
         if isinstance(irnode, Statement):
             res += "shape=box,"
         res += 'label="' + repr(type(irnode)) + " " + repr(id(irnode))
+
         try:
             res += ": " + irnode.value
         except Exception:
             pass
+
         try:
             res += ": " + irnode.name
         except Exception:
             pass
+
         try:
             res += ": " + getattr(irnode, "symbol").name
         except Exception:
             pass
+
         res += '" ];\n'
 
         if "children" in dir(irnode) and irnode.children:
@@ -149,6 +157,7 @@ def dotty_wrapper(fout):
                 )
                 if isinstance(node, str):
                     res += repr(id(node)) + " [label=" + node + "];\n"
+
         for d in attrs:
             node = getattr(irnode, d)
             if d == "target":
@@ -168,12 +177,12 @@ def dotty_wrapper(fout):
     return dotty_function
 
 
-def print_dotty(root, filename):
+def print_dotty(root: Block, filename: Path) -> None:
     """Print a graphviz dot representation to file"""
-    fout = open(filename, "w")
-    fout.write("digraph G {\n")
-    node_list = get_node_list(root)
-    dotty = dotty_wrapper(fout)
-    for n in node_list:
-        dotty(n)
-    fout.write("}\n")
+    with open(filename, "w") as fout:
+        fout.write("digraph G {\n")
+        node_list = get_node_list(root)
+        dotty = dotty_wrapper(fout)
+        for n in node_list:
+            dotty(n)
+        fout.write("}\n")

@@ -2,7 +2,11 @@
 
 __doc__ = """PL/0 recursive descent parser adapted from Wikipedia"""
 
+import argparse
+import os
 import logging
+from pathlib import Path
+
 import ir2
 
 # ir2.setup("arm_ir")  # configurable target
@@ -232,7 +236,7 @@ def program():
     return the_program
 
 
-def run(source, target="arm"):
+def run(source, target="arm", root_dir: Path = Path(os.getcwd())):
     """Run the compiler pipeline."""
     target_info = ir2.setup(target + "_ir")  # configurable target
     global the_lexer
@@ -252,20 +256,26 @@ def run(source, target="arm"):
 
     res.navigate(layout, post=True)
 
-    print_dotty(res, "log.dot")
+    print_dotty(res, root_dir / "log.dot")
 
     from cfg import CFG
 
     cfg = CFG(res)
     cfg.liveness()
-    cfg.print_cfg_to_dot("cfg.dot")
+    cfg.print_cfg_to_dot(root_dir / "cfg.dot")
     cfg.reg_alloc(n=target_info["available_registers"])
 
     res.navigate(codegeneration)
 
 
 def main():
-    filename = "input.txt"
+    parser = argparse.ArgumentParser(
+        description="PL/0 recursive descent parser"
+    )
+    parser.add_argument("filename", help="Input source file")
+    args = parser.parse_args()
+
+    filename = args.filename
     logging.debug("Reading input source from {}".format(filename))
     source = open(filename, "r").read()
 
@@ -281,7 +291,9 @@ def main():
 ***** Program '{}' source *****
 """.format(filename, source, filename))
 
-    run(source)
+    root_dir = os.getcwd()
+
+    run(source, root_dir=Path(root_dir))
 
 
 if __name__ == "__main__":

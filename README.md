@@ -5,7 +5,7 @@ This project uses `uv`.
 
 ## How to run
 ```bash
-uv run frontend.py
+uv run src/frontend.py input.txt
 ```
 
 ## How to test
