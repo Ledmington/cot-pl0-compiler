@@ -76,26 +76,3 @@ def lexer(text: str) -> Generator[tuple[str, str], Any, None]:
     words = [w.strip() for w in text.lower().split()]  # Split tokens
     for word in words:
         yield token(word), word
-
-
-# Test support
-__test_program = """VAR x, squ;
- 
-PROCEDURE square;
-BEGIN
-   squ := x * x
-END;
- 
-BEGIN
-   x := 1;
-   WHILE x <= 10 DO
-   BEGIN
-      CALL square;
-      x := x + 1 ;
-			!squ
-   END
-END."""
-
-if __name__ == "__main__":
-    for t, w in lexer(__test_program):
-        print(t, w)
