@@ -28,13 +28,24 @@ from ir2 import (
     PrintStatement,
 )
 from logger import logger
-import lexer
+from lexer import Lexer
+from ir2 import Block
 
 from st import standard_types, Symbol, SymbolTable
 
+from cfg import CFG
+
+from support import (
+    lowering,
+    flattening,
+    codegeneration,
+    print_dotty,
+    layout,
+)
+
 logging.basicConfig(filename="error.log", level=logging.DEBUG)
 
-symbols = lexer.symbols.keys()
+symbols = Lexer.symbols.keys()
 
 
 sym = None  # current symbol
@@ -43,7 +54,7 @@ new_sym = None  # next symbol
 new_value = None  # next value
 
 
-def getsym(lexer: Iterator[tuple[str, str]]) -> int:
+def getsym(lexer: Lexer) -> int:
     """Update sym"""
     global new_sym
     global new_value
@@ -52,7 +63,7 @@ def getsym(lexer: Iterator[tuple[str, str]]) -> int:
     try:
         sym = new_sym
         value = new_value
-        new_sym, new_value = lexer.__next__()
+        new_sym, new_value = next(lexer)
     except StopIteration:
         return 2
     logging.debug("getsym: {} {}".format(new_sym, new_value))
@@ -63,12 +74,12 @@ def error(msg: str) -> None:
     logging.error(msg + " {} {}".format(new_sym, new_value))
 
 
-def accept(lexer: Iterator[tuple[str, str]], s: str) -> int:
+def accept(lexer: Lexer, s: str) -> int:
     logging.debug("accepting {} == {}".format(s, new_sym))
     return getsym(lexer) if new_sym == s else 0
 
 
-def expect(lexer: Iterator[tuple[str, str]], s: str) -> int:
+def expect(lexer: Lexer, s: str) -> int:
     logging.debug("expecting {}".format(s))
     if accept(lexer, s):
         return 1
@@ -77,7 +88,7 @@ def expect(lexer: Iterator[tuple[str, str]], s: str) -> int:
 
 
 @logger
-def factor(symtab: SymbolTable):
+def factor(lexer: Lexer, symtab: SymbolTable):
     if accept(lexer, "ident"):
         return Variable(var=symtab.find(value), symtab=symtab)
     if accept(lexer, "number"):
@@ -93,9 +104,9 @@ def factor(symtab: SymbolTable):
 
 
 @logger
-def term(symtab):
+def term(lexer: Lexer, symtab: SymbolTable):
     op = None
-    expr = factor(symtab)
+    expr = factor(lexer, symtab)
     while new_sym in ["times", "slash"]:
         getsym(lexer)
         op = sym
@@ -105,12 +116,12 @@ def term(symtab):
 
 
 @logger
-def expression(symtab):
+def expression(lexer: Lexer, symtab: SymbolTable):
     op = None
     if new_sym in ["plus", "minus"]:
         getsym(lexer)
         op = sym
-    expr = term(symtab)
+    expr = term(lexer, symtab)
     if op:
         expr = UnaryExpression(operand=expr, symtab=symtab)
     while new_sym in ["plus", "minus"]:
@@ -142,11 +153,11 @@ def condition(symtab):
 
 
 @logger
-def statement(symtab):
+def statement(lexer: Lexer, symtab: SymbolTable):
     if accept(lexer, "ident"):
         target = symtab.find(value)
         expect(lexer, "becomes")
-        expr = expression(symtab)
+        expr = expression(lexer, symtab)
         return AssignStatement(target=target, expr=expr, symtab=symtab)
     elif accept(lexer, "callsym"):
         expect(lexer, "ident")
@@ -158,7 +169,7 @@ def statement(symtab):
         )
     elif accept(lexer, "beginsym"):
         statement_list = StatementList(symtab=symtab)
-        statement_list.append(statement(symtab))
+        statement_list.append(statement(lexer, symtab))
         while accept(lexer, "semicolon") == 0:
             statement_list.append(statement(symtab))
         expect(lexer, "endsym")
@@ -182,7 +193,7 @@ def statement(symtab):
 
 
 @logger
-def block(symtab: SymbolTable) -> Block:
+def block(lexer: Lexer, symtab: SymbolTable) -> Block:
     local_vars = SymbolTable()
     defs = DefinitionList()
     if accept(lexer, "constsym"):
@@ -210,39 +221,32 @@ def block(symtab: SymbolTable) -> Block:
         fname = value
         expect(lexer, "semicolon")
         local_vars.append(Symbol(fname, standard_types["function"]))
-        fbody = block(local_vars)
+        fbody = block(lexer, local_vars)
         expect(lexer, "semicolon")
         defs.append(
             FunctionDefinition(symbol=local_vars.find(fname), body=fbody)
         )
     the_block = Block(gl_sym=symtab, lc_sym=local_vars, defs=defs, body=None)
-    stat = statement(local_vars)
+    stat = statement(lexer, local_vars)
     the_block.body = stat
     return the_block  # Block(gl_sym=symtab, lc_sym=local_vars, defs=defs, body=stat)
 
 
 @logger
-def program(lexer):
+def program(lexer: Lexer) -> Block:
     """Axiom"""
     global_symtab = SymbolTable()
     getsym(lexer)
-    the_program = block(global_symtab)
+    the_program = block(lexer, global_symtab)
     expect(lexer, "period")
     return the_program
 
 
-def run(source, target="arm", root_dir: Path = Path(os.getcwd())):
+def run(source: str, target: str = "arm", root_dir: Path = Path(os.getcwd())):
     """Run the compiler pipeline."""
     target_info = ir2.setup(target + "_ir")  # configurable target
-    the_lexer = lexer.lexer(source)
+    the_lexer = Lexer(source)
     res = program(the_lexer)
-    from support import (
-        lowering,
-        flattening,
-        codegeneration,
-        print_dotty,
-        layout,
-    )
 
     res.navigate(lowering, post=True)
     res.navigate(flattening, post=True)
@@ -251,8 +255,6 @@ def run(source, target="arm", root_dir: Path = Path(os.getcwd())):
     res.navigate(layout, post=True)
 
     print_dotty(res, root_dir / "log.dot")
-
-    from cfg import CFG
 
     cfg = CFG(res)
     cfg.liveness()

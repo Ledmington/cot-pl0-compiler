@@ -5,7 +5,7 @@ import importlib
 from typing import Optional, Any
 
 from st import standard_types, getRegister, SymbolTable
-from lexer import negate_operator
+from lexer import Lexer
 
 
 class IRNode(object):
@@ -337,7 +337,7 @@ class WhileStatement(Statement):
         self.symtab.append(reg)
         branch_out = BranchStatement(
             self.parent,
-            negate_operator(self.cond.operator),
+            Lexer.negate_operator(self.cond.operator),
             reg,
             out_label,
             self.symtab,
