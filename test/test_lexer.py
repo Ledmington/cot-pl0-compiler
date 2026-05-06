@@ -1,4 +1,4 @@
-from lexer import lexer
+from lexer import Lexer
 
 
 def test_lexer():
@@ -60,4 +60,4 @@ END."""
         ("endsym", "end"),
         ("period", "."),
     ]
-    assert expected == list(lexer(input))
+    assert expected == list(Lexer(input))

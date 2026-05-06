@@ -3,10 +3,11 @@ Includes cfg construction and liveness analysis."""
 
 import logging
 from functools import reduce
+from pathlib import Path
 from typing import Any
 
 from support import get_node_list
-from ir2 import FunctionDefinition
+from ir2 import FunctionDefinition, StatementList
 
 
 class BasicBlock(object):
@@ -190,7 +191,6 @@ class CFG(list):
 
     def __init__(self, root):
         super().__init__()
-        from ir2 import StatementList
 
         stat_lists = [
             n for n in get_node_list(root) if isinstance(n, StatementList)
@@ -234,7 +234,7 @@ class CFG(list):
 
         return res
 
-    def print_cfg_to_dot(self, filename):
+    def print_cfg_to_dot(self, filename: Path) -> None:
         """Print the CFG in graphviz dot to file"""
         print("writing to '{filename}'".format(filename=filename))
         with open(filename, "w") as f:

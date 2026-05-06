@@ -4,12 +4,12 @@ import argparse
 import os
 import logging
 from pathlib import Path
-from typing import Iterator
 
 import ir2
 
 # ir2.setup("arm_ir")  # configurable target
 from ir2 import (
+    Expression,
     BinaryExpression,
     UnaryExpression,
     WhileStatement,
@@ -18,18 +18,15 @@ from ir2 import (
     Variable,
     Constant,
     CallExpression,
-)
-from ir2 import (
     FunctionDefinition,
     DefinitionList,
-    Block,
     CallStatement,
     StatementList,
     PrintStatement,
+    Block,
 )
 from logger import logger
 from lexer import Lexer
-from ir2 import Block
 
 from st import standard_types, Symbol, SymbolTable
 
@@ -94,7 +91,7 @@ def factor(lexer: Lexer, symtab: SymbolTable):
     if accept(lexer, "number"):
         return Constant(value=value, symtab=symtab)
     elif accept(lexer, "lparen"):
-        expr = expression()
+        expr = expression(lexer, symtab)
         expect(lexer, "rparen")
         return expr
     else:
@@ -110,13 +107,13 @@ def term(lexer: Lexer, symtab: SymbolTable):
     while new_sym in ["times", "slash"]:
         getsym(lexer)
         op = sym
-        expr2 = factor(symtab)
+        expr2 = factor(lexer, symtab)
         expr = BinaryExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
     return expr
 
 
 @logger
-def expression(lexer: Lexer, symtab: SymbolTable):
+def expression(lexer: Lexer, symtab: SymbolTable) -> Expression:
     op = None
     if new_sym in ["plus", "minus"]:
         getsym(lexer)
@@ -127,22 +124,22 @@ def expression(lexer: Lexer, symtab: SymbolTable):
     while new_sym in ["plus", "minus"]:
         getsym(lexer)
         op = sym
-        expr2 = term(symtab)
+        expr2 = term(lexer, symtab)
         expr = BinaryExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
     return expr
 
 
 @logger
-def condition(symtab):
+def condition(lexer: Lexer, symtab: SymbolTable):
     if accept(lexer, "oddsym"):
-        return UnaryExpression(operand=expression(symtab), symtab=symtab)
+        return UnaryExpression(operand=expression(lexer, symtab), symtab=symtab)
     else:
-        expr = expression(symtab)
+        expr = expression(lexer, symtab)
         if new_sym in ["eql", "neq", "lss", "leq", "gtr", "geq"]:
             getsym(lexer)
             logging.debug("condition operator {} {}".format(sym, new_sym))
             op = sym
-            expr2 = expression(symtab)
+            expr2 = expression(lexer, symtab)
             return BinaryExpression(
                 operator=op, op1=expr, op2=expr2, symtab=symtab
             )
@@ -176,14 +173,14 @@ def statement(lexer: Lexer, symtab: SymbolTable):
         statement_list.print_content()
         return statement_list
     elif accept(lexer, "ifsym"):
-        cond = condition(symtab)
+        cond = condition(lexer, symtab)
         expect(lexer, "thensym")
-        then = statement(symtab)
+        then = statement(lexer, symtab)
         return IfStatement(cond=cond, thenpart=then, symtab=symtab)
     elif accept(lexer, "whilesym"):
-        cond = condition(symtab)
+        cond = condition(lexer, symtab)
         expect(lexer, "dosym")
-        body = statement(symtab)
+        body = statement(lexer, symtab)
         return WhileStatement(cond=cond, body=body, symtab=symtab)
     elif accept(lexer, "print"):
         expect(lexer, "ident")
@@ -242,7 +239,9 @@ def program(lexer: Lexer) -> Block:
     return the_program
 
 
-def run(source: str, target: str = "arm", root_dir: Path = Path(os.getcwd())):
+def run(
+    source: str, target: str = "arm", root_dir: Path = Path(os.getcwd())
+) -> None:
     """Run the compiler pipeline."""
     target_info = ir2.setup(target + "_ir")  # configurable target
     the_lexer = Lexer(source)
@@ -264,7 +263,7 @@ def run(source: str, target: str = "arm", root_dir: Path = Path(os.getcwd())):
     res.navigate(codegeneration)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="PL/0 recursive descent parser"
     )
