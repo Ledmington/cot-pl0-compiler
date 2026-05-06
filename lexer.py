@@ -2,6 +2,8 @@
 
 __doc__ = """Simple lexer for PL/0 using generators"""
 
+from typing import Any, Generator
+
 # Tokens can have multiple definitions if needed
 symbols = {
     "lparen": ["("],
@@ -35,20 +37,22 @@ symbols = {
 }
 
 
-def negate_operator(op):
-    if op == "eql":
-        return "neq"
-    elif op == "neq":
-        return "eql"
-    elif op == "lss":
-        return "geq"
-    elif op == "leq":
-        return "gtr"
-    elif op == "gtr":
-        return "leq"
-    elif op == "geq":
-        return "lss"
-    return None
+def negate_operator(op: str) -> str | None:
+    match op:
+        case "eql":
+            return "neq"
+        case "neq":
+            return "eql"
+        case "lss":
+            return "geq"
+        case "leq":
+            return "gtr"
+        case "gtr":
+            return "leq"
+        case "geq":
+            return "lss"
+        case _:
+            return None
 
 
 def token(word: str) -> str:
@@ -63,7 +67,7 @@ def token(word: str) -> str:
         return "ident"
 
 
-def lexer(text: str):
+def lexer(text: str) -> Generator[tuple[str, str], Any, None]:
     """Generator implementation of a lexer"""
     import re
 
