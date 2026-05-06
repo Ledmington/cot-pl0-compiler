@@ -1,43 +1,40 @@
 __doc__ = """PL/0 recursive descent parser adapted from Wikipedia"""
 
 import argparse
-import os
 import logging
+import os
 from pathlib import Path
 
 import ir2
+from cfg import CFG
 
 # ir2.setup("arm_ir")  # configurable target
 from ir2 import (
-    Expression,
-    BinaryExpression,
-    UnaryExpression,
-    WhileStatement,
     AssignStatement,
-    IfStatement,
-    Variable,
-    Constant,
-    CallExpression,
-    FunctionDefinition,
-    DefinitionList,
-    CallStatement,
-    StatementList,
-    PrintStatement,
+    BinaryExpression,
     Block,
+    CallExpression,
+    CallStatement,
+    Constant,
+    DefinitionList,
+    Expression,
+    FunctionDefinition,
+    IfStatement,
+    PrintStatement,
+    StatementList,
+    UnaryExpression,
+    Variable,
+    WhileStatement,
 )
-from logger import logger
 from lexer import Lexer
-
-from st import standard_types, Symbol, SymbolTable
-
-from cfg import CFG
-
+from logger import logger
+from st import Symbol, SymbolTable, standard_types
 from support import (
-    lowering,
-    flattening,
     codegeneration,
-    print_dotty,
+    flattening,
     layout,
+    lowering,
+    print_dotty,
 )
 
 logging.basicConfig(filename="error.log", level=logging.DEBUG)

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import logging
 import importlib
-from typing import Optional, Any
+import logging
+from typing import Optional
 
-from st import standard_types, getRegister, SymbolTable
 from lexer import Lexer
+from st import SymbolTable, getRegister, standard_types
 
 
 class IRNode(object):

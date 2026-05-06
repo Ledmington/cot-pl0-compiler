@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, TypeVar, ParamSpec
+from typing import Callable, ParamSpec, TypeVar
 
 __doc__ = '''Logging function using decorators
 Usage: decorate monitored function with "@logger"'''

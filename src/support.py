@@ -4,10 +4,9 @@ __doc__ = """Support functions for visiting the AST
 These functions expose high level interfaces (passes) for actions that can be applied to multiple IR nodes."""
 
 from pathlib import Path
-
 from typing import Any, Callable
 
-from ir2 import Statement, Block
+from ir2 import Block, Statement
 
 
 def get_node_list(root: Block):

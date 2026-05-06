@@ -6,8 +6,8 @@ from functools import reduce
 from pathlib import Path
 from typing import Any
 
-from support import get_node_list
 from ir2 import FunctionDefinition, StatementList
+from support import get_node_list
 
 
 class BasicBlock(object):
