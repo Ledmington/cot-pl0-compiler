@@ -4,6 +4,7 @@ import argparse
 import os
 import logging
 from pathlib import Path
+from typing import Iterator
 
 import ir2
 
@@ -42,7 +43,7 @@ new_sym = None  # next symbol
 new_value = None  # next value
 
 
-def getsym(lexer) -> int:
+def getsym(lexer: Iterator[tuple[str, str]]) -> int:
     """Update sym"""
     global new_sym
     global new_value
@@ -58,16 +59,16 @@ def getsym(lexer) -> int:
     return 1
 
 
-def error(msg):
+def error(msg: str) -> None:
     logging.error(msg + " {} {}".format(new_sym, new_value))
 
 
-def accept(lexer, s: str) -> int:
+def accept(lexer: Iterator[tuple[str, str]], s: str) -> int:
     logging.debug("accepting {} == {}".format(s, new_sym))
     return getsym(lexer) if new_sym == s else 0
 
 
-def expect(lexer, s) -> int:
+def expect(lexer: Iterator[tuple[str, str]], s: str) -> int:
     logging.debug("expecting {}".format(s))
     if accept(lexer, s):
         return 1
@@ -76,7 +77,7 @@ def expect(lexer, s) -> int:
 
 
 @logger
-def factor(symtab):
+def factor(symtab: SymbolTable):
     if accept(lexer, "ident"):
         return Variable(var=symtab.find(value), symtab=symtab)
     if accept(lexer, "number"):
@@ -181,7 +182,7 @@ def statement(symtab):
 
 
 @logger
-def block(symtab):
+def block(symtab: SymbolTable) -> Block:
     local_vars = SymbolTable()
     defs = DefinitionList()
     if accept(lexer, "constsym"):

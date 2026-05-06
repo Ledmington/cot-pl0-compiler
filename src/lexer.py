@@ -1,6 +1,8 @@
 __doc__ = """Simple lexer for PL/0 using generators"""
 
-from typing import Any, Generator
+from typing import Optional, Iterator
+
+import re
 
 # Tokens can have multiple definitions if needed
 symbols = {
@@ -35,7 +37,7 @@ symbols = {
 }
 
 
-def negate_operator(op: str) -> str | None:
+def negate_operator(op: str) -> Optional[str]:
     match op:
         case "eql":
             return "neq"
@@ -65,10 +67,8 @@ def token(word: str) -> str:
         return "ident"
 
 
-def lexer(text: str) -> Generator[tuple[str, str], Any, None]:
+def lexer(text: str) -> Iterator[tuple[str, str]]:
     """Generator implementation of a lexer"""
-    import re
-
     t = re.split("(\\W+)", text)  # Split at non-alphanumeric sequences
     text = " ".join(t)  # Join alphanumeric and non-alphanumeric, with spaces
     words = [w.strip() for w in text.lower().split()]  # Split tokens

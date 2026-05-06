@@ -1,14 +1,18 @@
 import logging
+from typing import Callable, TypeVar, ParamSpec
 
 __doc__ = '''Logging function using decorators
 Usage: decorate monitored function with "@logger"'''
 
+P = ParamSpec("P")
+R = TypeVar("R")
 
-def logger(f):
-    def wrapped(*args, **kwargs):
-        logging.debug("start {}".format(f))
+
+def logger(f: Callable[P, R]) -> Callable[P, R]:
+    def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
+        logging.debug(f"start {f}")
         res = f(*args, **kwargs)
-        logging.debug("end {}".format(f))
+        logging.debug(f"end {f}")
         return res
 
     return wrapped

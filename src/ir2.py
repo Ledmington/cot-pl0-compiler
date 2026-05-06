@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import logging
 import importlib
-from typing import Optional
+from typing import Optional, Any
 
-from st import standard_types, getRegister, Symbol, SymbolTable
+from st import standard_types, getRegister, SymbolTable
 from lexer import negate_operator
 
 
@@ -96,7 +96,7 @@ class Constant(IRNode):
         parent: Optional[IRNode] = None,
         value=0,
         symb=None,
-        symtab: Optional[list[Symbol]] = None,
+        symtab: Optional[SymbolTable] = None,
     ):
         if not symb:
             try:
@@ -106,7 +106,7 @@ class Constant(IRNode):
         super(Constant, self).__init__(parent, symtab, symb)
         self.mapping = ["value"]
 
-    def lower(self):
+    def lower(self) -> bool:
         reg = getRegister()
         self.symtab.append(reg)
         node = LoadStatement(self.parent, self.value, reg, self.symtab)
@@ -117,12 +117,15 @@ class Variable(IRNode):
     """Class representing read access to both local and global variables"""
 
     def __init__(
-        self, parent=None, var=None, symtab: Optional[list[Symbol]] = None
+        self,
+        parent: Optional[IRNode] = None,
+        var=None,
+        symtab: Optional[SymbolTable] = None,
     ):
         super(Variable, self).__init__(parent, symtab, var)
         self.mapping = ["symbol"]
 
-    def lower(self):
+    def lower(self) -> bool:
         reg = getRegister()
         self.symtab.append(reg)
         node = LoadStatement(self.parent, self.symbol, reg, self.symtab)
@@ -145,7 +148,12 @@ class BinaryExpression(Expression):
     """Binary Expression node, characterized by an operator field and two operands"""
 
     def __init__(
-        self, parent=None, operator=None, op1=None, op2=None, symtab=None
+        self,
+        parent: Optional[IRNode] = None,
+        operator=None,
+        op1=None,
+        op2=None,
+        symtab: Optional[SymbolTable] = None,
     ):
         super(BinaryExpression, self).__init__(
             parent, symtab, operator, op1, op2
@@ -155,7 +163,7 @@ class BinaryExpression(Expression):
     def getOperands(self):
         return self.children[1:]
 
-    def lower(self):
+    def lower(self) -> bool:
         reg = getRegister()
         self.symtab.append(reg)
         node = BinaryStatement(
@@ -168,14 +176,19 @@ class BinaryExpression(Expression):
 class UnaryExpression(Expression):
     """Unary Expression node, characterized by an operator field and an operand"""
 
-    def __init__(self, parent=None, operand=None, symtab=None):
+    def __init__(
+        self,
+        parent: Optional[IRNode] = None,
+        operand=None,
+        symtab: Optional[SymbolTable] = None,
+    ):
         super(UnaryExpression, self).__init__(parent, symtab, operand, operand)
         self.mapping = ["operator", "operand"]
 
     def getOperand(self):
         return self.operand
 
-    def lower(self):
+    def lower(self) -> bool:
         reg = getRegister()
         self.symtab.append(reg)
         node = BinaryStatement(
@@ -189,7 +202,11 @@ class CallExpression(Expression):
     """Call Expression node, characterized by a target function and a parameters list"""
 
     def __init__(
-        self, parent=None, function=None, parameters=None, symtab=None
+        self,
+        parent: Optional[IRNode] = None,
+        function=None,
+        parameters=None,
+        symtab: Optional[SymbolTable] = None,
     ):
         children = [function]
         if parameters:
@@ -203,7 +220,7 @@ class CallExpression(Expression):
     def getParameters(self):
         return self.children[1:]
 
-    def lower(self):
+    def lower(self) -> bool:
         node = BranchLinkStat(
             self.parent, None, None, self.function, self.symtab
         )
@@ -213,14 +230,14 @@ class CallExpression(Expression):
 class Statement(IRNode):
     """Statement base node; can have a label"""
 
-    def setLabel(self, label):
+    def setLabel(self, label: str) -> None:
         self.label = label
         label.value = self  # set target
 
-    def getLabel(self):
+    def getLabel(self) -> str:
         return self.label
 
-    def hasLabel(self):
+    def hasLabel(self) -> bool:
         try:
             if self.label:
                 return True
@@ -228,7 +245,7 @@ class Statement(IRNode):
             pass
         return False
 
-    def getFunction(self):
+    def getFunction(self) -> str | FunctionDefinition:
         """Find the function to which this statement belong, if any"""
         if not self.parent:
             return "global"
@@ -237,7 +254,7 @@ class Statement(IRNode):
         else:
             return self.parent.getFunction()
 
-    def codegen(self):
+    def codegen(self) -> str:
         """Fallback implementation for codegen"""
         return self.__repr__()
 
@@ -245,7 +262,12 @@ class Statement(IRNode):
 class CallStatement(Statement):
     """Procedure call (non-returning)"""
 
-    def __init__(self, parent=None, call_expr=None, symtab=None):
+    def __init__(
+        self,
+        parent: Optional[IRNode] = None,
+        call_expr=None,
+        symtab: Optional[SymbolTable] = None,
+    ):
         super(CallStatement, self).__init__(parent, symtab, call_expr)
         self.mapping = ["call_expr"]
 
@@ -254,14 +276,19 @@ class IfStatement(Statement):
     """Conditional statement node"""
 
     def __init__(
-        self, parent=None, cond=None, thenpart=None, elsepart=None, symtab=None
+        self,
+        parent: Optional[IRNode] = None,
+        cond=None,
+        thenpart=None,
+        elsepart=None,
+        symtab: Optional[SymbolTable] = None,
     ):
         super(IfStatement, self).__init__(
             parent, symtab, cond, thenpart, elsepart
         )
         self.mapping = ["cond", "thenpart", "elsepart"]
 
-    def lower(self):
+    def lower(self) -> bool:
         if self.elsepart:
             raise Exception("Lowering of if-else not implemented yet!")
         out_label = standard_types["label"]()
@@ -291,11 +318,17 @@ class IfStatement(Statement):
 class WhileStatement(Statement):
     """While loop statement node"""
 
-    def __init__(self, parent=None, cond=None, body=None, symtab=None):
+    def __init__(
+        self,
+        parent: Optional[IRNode] = None,
+        cond=None,
+        body=None,
+        symtab: Optional[SymbolTable] = None,
+    ):
         super(WhileStatement, self).__init__(parent, symtab, cond, body)
         self.mapping = ["cond", "body"]
 
-    def lower(self):
+    def lower(self) -> bool:
         out_label = standard_types["label"]()
         back_label = standard_types["label"]()
         end = EmptyStatement()
@@ -326,11 +359,17 @@ class WhileStatement(Statement):
 class AssignStatement(Statement):
     """Assignment statement node (writes to a variable the value of an expression)"""
 
-    def __init__(self, parent=None, target=None, expr=None, symtab=None):
+    def __init__(
+        self,
+        parent: Optional[IRNode] = None,
+        target=None,
+        expr=None,
+        symtab: Optional[SymbolTable] = None,
+    ):
         super(AssignStatement, self).__init__(parent, symtab, target, expr)
         self.mapping = ["target", "expr"]
 
-    def lower(self):
+    def lower(self) -> bool:
         node = StoreStatement(
             self.parent, self.target, self.expr.dest, self.symtab
         )
@@ -345,7 +384,12 @@ class BranchStatement(Statement):
     """Branch statement node (low level)"""
 
     def __init__(
-        self, parent=None, operator=None, src=None, target=None, symtab=None
+        self,
+        parent: Optional[IRNode] = None,
+        operator=None,
+        src=None,
+        target=None,
+        symtab: Optional[SymbolTable] = None,
     ):
         super(BranchStatement, self).__init__(
             parent, symtab, operator, src, target
@@ -371,7 +415,13 @@ class EmptyStatement(Statement):
 class StoreStatement(Statement):
     """Store-to-memory statement node"""
 
-    def __init__(self, parent=None, symbol=None, src=None, symtab=None):
+    def __init__(
+        self,
+        parent: Optional[IRNode] = None,
+        symbol=None,
+        src=None,
+        symtab: Optional[SymbolTable] = None,
+    ):
         super(StoreStatement, self).__init__(parent, symtab, symbol, src)
         self.mapping = ["symbol", "src"]
 
@@ -379,7 +429,13 @@ class StoreStatement(Statement):
 class LoadStatement(Statement):
     """Load-from-memory statement node"""
 
-    def __init__(self, parent=None, symbol=None, dest=None, symtab=None):
+    def __init__(
+        self,
+        parent: Optional[IRNode] = None,
+        symbol=None,
+        dest=None,
+        symtab: Optional[SymbolTable] = None,
+    ):
         super(LoadStatement, self).__init__(parent, symtab, dest, symbol)
         self.mapping = ["dest", "symbol"]
 
@@ -389,12 +445,12 @@ class BinaryStatement(Statement):
 
     def __init__(
         self,
-        parent=None,
+        parent: Optional[IRNode] = None,
         operator=None,
         dest=None,
         src1=None,
         src2=None,
-        symtab=None,
+        symtab: Optional[SymbolTable] = None,
     ):
         super(BinaryStatement, self).__init__(
             parent, symtab, operator, dest, src1, src2
@@ -406,7 +462,12 @@ class UnaryStatement(Statement):
     """Unary statement node (two operand instruction R1 = op R2)"""
 
     def __init__(
-        self, parent=None, operator=None, dest=None, src=None, symtab=None
+        self,
+        parent: Optional[IRNode] = None,
+        operator=None,
+        dest=None,
+        src=None,
+        symtab: Optional[SymbolTable] = None,
     ):
         super(UnaryStatement, self).__init__(
             parent, symtab, operator, dest, src
@@ -417,7 +478,12 @@ class UnaryStatement(Statement):
 class PrintStatement(Statement):
     """Built-in function to print variable value"""
 
-    def __init__(self, parent=None, symbol=None, symtab=None):
+    def __init__(
+        self,
+        parent: Optional[IRNode] = None,
+        symbol=None,
+        symtab: Optional[SymbolTable] = None,
+    ):
         super(PrintStatement, self).__init__(parent, symtab, symbol)
         self.mapping = ["symbol"]
 
@@ -440,7 +506,12 @@ class FunctionPrologueStatement(Statement):
 class StatementList(Statement):
     """Statement List: allows to define sequences of instructions; used both in high and low level representation with the same meaning; offers facilities for flattening nested StatLists"""
 
-    def __init__(self, parent=None, children=None, symtab=None):
+    def __init__(
+        self,
+        parent: Optional[IRNode] = None,
+        children: list[Statement] = None,
+        symtab: Optional[SymbolTable] = None,
+    ):
         super().__init__(parent, symtab, children)
         logging.debug("StatList : new {}".format(id(self)))
         self.parent = parent
@@ -526,7 +597,7 @@ class Block(Statement):
         super(Block, self).__init__(parent, lc_sym, defs, body)
         self.mapping = ["defs", "body"]
 
-    def lower(self):
+    def lower(self) -> bool:
         if not self.parent:  # Global Block
             new_pr = FunctionPrologueStatement()
             new_ep = ReturnStatement()
@@ -577,7 +648,7 @@ class Block(Statement):
 class Definition(IRNode):
     """Definitions base node"""
 
-    def __init__(self, parent=None, symbol=None):
+    def __init__(self, parent: Optional[IRNode] = None, symbol=None):
         super(Definition, self).__init__(parent, None, symbol)
         self.mapping = ["symbol"]
 
@@ -585,7 +656,7 @@ class Definition(IRNode):
 class FunctionDefinition(Definition):
     """Function Definition node"""
 
-    def __init__(self, parent=None, symbol=None, body=None):
+    def __init__(self, parent: Optional[IRNode] = None, symbol=None, body=None):
         super(Definition, self).__init__(parent, None, symbol, body)
         self.mapping = ["symbol", "body"]
 
@@ -604,7 +675,7 @@ class FunctionDefinition(Definition):
 class DefinitionList(IRNode):
     """List of definitions"""
 
-    def __init__(self, parent=None, children=[]):
+    def __init__(self, parent: Optional[IRNode] = None, children=[]):
         super(DefinitionList, self).__init__(parent, None, *children)
 
     def append(self, elem):

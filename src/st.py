@@ -1,8 +1,7 @@
-import logging
-from symtable import SymbolTable
-from typing import Optional
+from __future__ import annotations
 
-from src.ir2 import Block
+import logging
+from typing import Optional
 
 # SYMBOLS AND TYPES
 basetypes = ["Int", "Float", "Label", "Struct", "Function"]
@@ -160,8 +159,3 @@ def getRegister(stype: str = "int") -> Symbol:
     reg = standard_types[stype]()
     reg.storage_class = "register"
     return reg
-
-
-if __name__ == "__main__":
-    for i in range(10):
-        print(getRegister())
