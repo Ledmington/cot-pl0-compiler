@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import logging
-from typing import Callable
+import importlib
 
 from st import standard_types, getRegister
 from lexer import negate_operator
@@ -154,7 +154,7 @@ class BinaryExpression(Expression):
 class UnaryExpression(Expression):
     """Unary Expression node, characterized by an operator field and an operand"""
 
-    def __init__(self, parent=None, operator=None, operand=None, symtab=None):
+    def __init__(self, parent=None, operand=None, symtab=None):
         super(UnaryExpression, self).__init__(parent, symtab, operand, operand)
         self.mapping = ["operator", "operand"]
 
@@ -262,7 +262,14 @@ class IfStatement(Statement):
             self.parent, self.cond.operator, ncond.dest, out_label, self.symtab
         )
         slist = StatementList(
-            self.parent, children=[self.cond, ncond, branch, thenpart, end]
+            self.parent,
+            children=[
+                self.cond,
+                ncond,
+                branch,
+                # thenpart,
+                end,
+            ],
         )
         return self.parent.replace(self, slist)
 
@@ -593,13 +600,16 @@ def subclasses(cls):
 
 
 def setup(target):
-    func = lambda self: ""
-    import importlib
+    def func(self):
+        return ""
 
     try:
         the_target = importlib.import_module(target)
     except ImportError:
-        func = lambda self: repr(type(self)) + " " + repr(id(self))
+
+        def func(self):
+            return repr(type(self)) + " " + repr(id(self))
+
     for the_class in subclasses(IRNode):
         try:
             if issubclass(the_class, IRNode):

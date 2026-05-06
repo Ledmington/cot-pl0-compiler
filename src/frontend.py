@@ -115,7 +115,7 @@ def expression(symtab):
         op = sym
     expr = term(symtab)
     if op:
-        expr = UnaryExpression(operator=initial_op, operand=expr, symtab=symtab)
+        expr = UnaryExpression(operand=expr, symtab=symtab)
     while new_sym in ["plus", "minus"]:
         getsym()
         op = sym
