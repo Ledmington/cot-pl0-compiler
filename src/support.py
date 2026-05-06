@@ -1,4 +1,3 @@
-#!/usr/bin/python
 import logging
 
 __doc__ = """Support functions for visiting the AST

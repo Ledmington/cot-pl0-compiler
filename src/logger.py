@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import logging
 
 __doc__ = '''Logging function using decorators

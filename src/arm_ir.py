@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 target_info = {
     "available_registers": 10,
 }

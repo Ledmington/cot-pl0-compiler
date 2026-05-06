@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-
-
 import logging
 from symtable import SymbolTable
 from typing import Optional

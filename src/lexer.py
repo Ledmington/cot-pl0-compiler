@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 __doc__ = """Simple lexer for PL/0 using generators"""
 
 from typing import Any, Generator

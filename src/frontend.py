@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 __doc__ = """PL/0 recursive descent parser adapted from Wikipedia"""
 
 import argparse

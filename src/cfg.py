@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 __doc__ = """Control Flow Graph implementation
 Includes cfg construction and liveness analysis."""
 
