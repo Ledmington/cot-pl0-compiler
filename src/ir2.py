@@ -149,8 +149,3 @@ def subclasses(cls):
     return set(cls.__subclasses__()).union(
         [s for c in cls.__subclasses__() for s in subclasses(c)]
     )
-
-
-if __name__ == "__main__":
-    TEST = CallExpression(function="pippo", parameters=["pluto", 1])
-    print(TEST)
