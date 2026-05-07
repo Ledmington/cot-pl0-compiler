@@ -6,7 +6,7 @@ from ir_node import IRNode
 from st import SymbolTable, getRegister, standard_types
 from statements import (
     BinaryStatement,
-    BranchLinkStat,
+    BranchLinkStatement,
     FunctionPrologueStatement,
     ReturnStatement,
     StatementList,
@@ -101,7 +101,7 @@ class CallExpression(Expression):
         return self.children[1:]
 
     def lower(self) -> bool:
-        node = BranchLinkStat(
+        node = BranchLinkStatement(
             self.parent, None, None, self.function, self.symtab
         )
         return self.parent.replace(self, node)

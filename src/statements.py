@@ -1,10 +1,42 @@
 import logging
 from typing import Optional
 
+from ir2 import FunctionDefinition
 from ir_node import IRNode
 from lexer import Lexer
 from st import SymbolTable, getRegister, standard_types
-from statement import Statement
+
+
+class Statement(IRNode):
+    """Statement base node; can have a label"""
+
+    def setLabel(self, label: str) -> None:
+        self.label = label
+        label.value = self  # set target
+
+    def getLabel(self) -> str:
+        return self.label
+
+    def hasLabel(self) -> bool:
+        try:
+            if self.label:
+                return True
+        except Exception:
+            pass
+        return False
+
+    def getFunction(self) -> str | FunctionDefinition:
+        """Find the function to which this statement belongs, if any"""
+        if not self.parent:
+            return "global"
+        elif isinstance(self.parent, FunctionDefinition):
+            return self.parent
+        else:
+            return self.parent.getFunction()
+
+    def codegen(self) -> str:
+        """Fallback implementation for codegen"""
+        return self.__repr__()
 
 
 class CallStatement(Statement):
@@ -148,7 +180,7 @@ class BranchStatement(Statement):
         return self.operator
 
 
-class BranchLinkStat(BranchStatement):
+class BranchLinkStatement(BranchStatement):
     """Branch and link statement node"""
 
     pass
