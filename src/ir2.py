@@ -3,12 +3,10 @@ from __future__ import annotations
 from typing import Optional
 
 from ir_node import IRNode
-from st import SymbolTable, getRegister, standard_types
+from st import SymbolTable, getRegister
 from statements import (
     BinaryStatement,
     BranchLinkStatement,
-    FunctionPrologueStatement,
-    ReturnStatement,
     StatementList,
 )
 
@@ -20,7 +18,7 @@ class Expression(IRNode):
 
     pass
 
-    def getOperator(self):
+    def get_operator(self):
         return self.operator
 
 
@@ -40,7 +38,7 @@ class BinaryExpression(Expression):
         )
         self.mapping = ["operator", "op1", "op2"]
 
-    def getOperands(self):
+    def get_operands(self):
         return self.children[1:]
 
     def lower(self) -> bool:
@@ -65,7 +63,7 @@ class UnaryExpression(Expression):
         super(UnaryExpression, self).__init__(parent, symtab, operand, operand)
         self.mapping = ["operator", "operand"]
 
-    def getOperand(self):
+    def get_operand(self):
         return self.operand
 
     def lower(self) -> bool:
@@ -94,10 +92,10 @@ class CallExpression(Expression):
         super(CallExpression, self).__init__(parent, symtab, *children)
         self.mapping = ["function"]
 
-    def getTargetFunction(self):
+    def get_target_function(self):
         return self.children[0]
 
-    def getParameters(self):
+    def get_parameters(self):
         return self.children[1:]
 
     def lower(self) -> bool:
@@ -105,44 +103,6 @@ class CallExpression(Expression):
             self.parent, None, None, self.function, self.symtab
         )
         return self.parent.replace(self, node)
-
-
-class Definition(IRNode):
-    """Definitions base node"""
-
-    def __init__(self, parent: Optional[IRNode] = None, symbol=None):
-        super(Definition, self).__init__(parent, None, symbol)
-        self.mapping = ["symbol"]
-
-
-class FunctionDefinition(Definition):
-    """Function Definition node"""
-
-    def __init__(self, parent: Optional[IRNode] = None, symbol=None, body=None):
-        super(Definition, self).__init__(parent, None, symbol, body)
-        self.mapping = ["symbol", "body"]
-
-    def getGlobalSymbols(self):
-        return self.body.global_symtab.exclude(
-            [standard_types["function"], standard_types["label"]]
-        )
-
-    def lower(self):
-        new_pr = FunctionPrologueStatement()
-        new_ep = ReturnStatement()
-        slist = StatementList(self, children=[new_pr, self.body, new_ep])
-        self.body = slist
-
-
-class DefinitionList(IRNode):
-    """List of definitions"""
-
-    def __init__(self, parent: Optional[IRNode] = None, children=[]):
-        super(DefinitionList, self).__init__(parent, None, *children)
-
-    def append(self, elem: IRNode):
-        elem.parent = self
-        self.children.append(elem)
 
 
 def subclasses(cls):

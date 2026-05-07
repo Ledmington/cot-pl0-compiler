@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from ir2 import FunctionDefinition
+from definitions import FunctionDefinition
 from ir_node import IRNode
 from lexer import Lexer
 from st import SymbolTable, getRegister, standard_types
@@ -14,10 +14,10 @@ class Statement(IRNode):
         self.label = label
         label.value = self  # set target
 
-    def getLabel(self) -> str:
+    def get_label(self) -> str:
         return self.label
 
-    def hasLabel(self) -> bool:
+    def has_label(self) -> bool:
         try:
             if self.label:
                 return True
@@ -25,14 +25,14 @@ class Statement(IRNode):
             pass
         return False
 
-    def getFunction(self) -> str | FunctionDefinition:
+    def get_function(self) -> str | FunctionDefinition:
         """Find the function to which this statement belongs, if any"""
         if not self.parent:
             return "global"
         elif isinstance(self.parent, FunctionDefinition):
             return self.parent
         else:
-            return self.parent.getFunction()
+            return self.parent.get_function()
 
     def codegen(self) -> str:
         """Fallback implementation for codegen"""
@@ -127,7 +127,7 @@ class WhileStatement(Statement):
         )
         self.cond.set_label(back_label)
         logging.debug(
-            "{} attached to {}".format(self.cond.getLabel(), self.cond)
+            "{} attached to {}".format(self.cond.get_label(), self.cond)
         )
         slist = StatementList(
             self.parent,

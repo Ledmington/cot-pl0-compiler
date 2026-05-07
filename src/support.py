@@ -92,7 +92,7 @@ def codegeneration(node):
     """
     logging.info("Generating code for {} {}".format(type(node), id(node)))
     try:
-        print(node.getLabel().codegen(), ":")
+        print(node.get_label().codegen(), ":")
     except Exception:
         print("\t")
     try:

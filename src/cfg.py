@@ -5,17 +5,19 @@ import logging
 from functools import reduce
 from pathlib import Path
 
-from ir2 import FunctionDefinition
+from definitions import FunctionDefinition
 from statements import BranchStatement, CallStatement, StatementList
 from support import get_node_list
 
 
 class BasicBlock(object):
-    def __init__(self, next=None, instrs=[], labels=None):
+    def __init__(self, next=None, instrs=None, labels=None):
         """Structure:
         Zero, one (next) or two (next, target_bb) successors
         Keeps information on labels
         """
+        if instrs is None:
+            instrs = []
         self.next = next
         self.instrs = instrs
 
@@ -105,7 +107,7 @@ class BasicBlock(object):
                 repr(id(self))
                 + " -> "
                 + "exit"
-                + repr(id(self.getFunction()))
+                + repr(id(self.get_function()))
                 + ' [label="'
                 + repr(self.live_out)
                 + '"];\n'
@@ -141,8 +143,8 @@ class BasicBlock(object):
         except Exception:
             pass
 
-    def getFunction(self):
-        return self.instrs[0].getFunction()
+    def get_function(self):
+        return self.instrs[0].get_function()
 
 
 def stat_list_to_bb(sl):
@@ -152,7 +154,7 @@ def stat_list_to_bb(sl):
     labels = []
     for n in sl.children:
         try:
-            label = n.getLabel()
+            label = n.get_label()
             if label:
                 if len(newbb):
                     bb = BasicBlock(None, newbb, labels)
@@ -219,7 +221,7 @@ class CFG(list):
         for bb in defs:
             first = bb.instrs[0]
             parent = first.parent
-            while parent and isinstance(parent, FunctionDefinition):
+            while parent is not None and isinstance(parent, FunctionDefinition):
                 parent = parent.parent
             if not parent:
                 res["global"] = bb
