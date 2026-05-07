@@ -22,7 +22,6 @@ class Block(Statement):
         body=None,
     ):
         lc_sym.setParent(gl_sym)
-        lc_sym.setScopeBlock(self)
         super(Block, self).__init__(parent, lc_sym, defs, body)
         self.mapping = ["defs", "body"]
 

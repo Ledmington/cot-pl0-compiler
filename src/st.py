@@ -3,8 +3,6 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from block import Block
-
 # SYMBOLS AND TYPES
 basetypes = ["Int", "Float", "Label", "Struct", "Function"]
 qualifiers = ["unsigned"]
@@ -149,12 +147,6 @@ class SymbolTable(list):
             return self.parent
         except AttributeError:
             return None
-
-    def setScopeBlock(self, scope: Block) -> None:
-        self.block = scope
-
-    def getScopeBlock(self) -> Block:
-        return self.block
 
 
 def getRegister(stype: str = "int") -> Symbol:
