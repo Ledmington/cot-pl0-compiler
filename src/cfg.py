@@ -4,14 +4,13 @@ Includes cfg construction and liveness analysis."""
 import logging
 from functools import reduce
 from pathlib import Path
-from typing import Any
 
 from ir2 import FunctionDefinition, StatementList
 from support import get_node_list
 
 
 class BasicBlock(object):
-    def __init__(self, next=None, instrs: list[Any] = [], labels=None):
+    def __init__(self, next=None, instrs=[], labels=None):
         """Structure:
         Zero, one (next) or two (next, target_bb) successors
         Keeps information on labels

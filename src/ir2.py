@@ -1,136 +1,12 @@
 from __future__ import annotations
 
-import importlib
 import logging
 from typing import Optional
 
+from ir_node import IRNode
 from lexer import Lexer
 from st import SymbolTable, getRegister, standard_types
-
-
-class IRNode(object):
-    """Base class for the Intermediate Representation, offers printing and tree traversal facilities"""
-
-    def __init__(
-        self,
-        parent: Optional[IRNode] = None,
-        symtab: Optional[SymbolTable] = None,
-        *children,
-    ):
-        self.parent = parent
-        self.symtab = symtab
-        self.mapping = []
-        self.children = list(children) if children else []
-        for c in self.children:
-            try:
-                c.parent = self
-            except AttributeError:
-                pass
-
-    def __repr__(self):
-        line = ""
-        try:
-            line = self.label.codegen() + " : "
-        except Exception:
-            pass
-        lines = [line + repr(type(self)) + " " + repr(id(self)) + " {"]
-        for c in self.children:
-            lines += "{}".format(repr(c)).split("\n")
-        return "\n\t".join(lines) + "\n}"
-
-    def __getattr__(self, attr):
-        return self.children[self.mapping.index(attr)]
-
-    def __setattr__(self, attr, value):
-        has_mapping = True if "mapping" in self.__dict__ else False
-        if attr == "mapping" or not has_mapping or attr not in self.mapping:
-            object.__setattr__(self, attr, value)
-            return
-        self.children[self.mapping.index(attr)] = value
-
-    def navigate(self, action, post=False):
-        if not post:
-            action(self)
-        for c in self.children:
-            try:
-                c.navigate(action, post)
-            except Exception:
-                pass
-        if post:
-            action(self)
-
-    def replace(self, old, new) -> bool:
-        try:
-            self.children[self.children.index(old)] = new
-            return True
-        except Exception as e:
-            logging.debug("Exception while replacing {}".format(e))
-            return False
-
-    def collect_uses(self):
-        uses = []
-        try:
-            uses.append(self.src)
-        except Exception:
-            pass
-        try:
-            uses.append(self.src1)
-        except Exception:
-            pass
-        try:
-            uses.append(self.src2)
-        except Exception:
-            pass
-        logging.debug("Uses of {}: {}".format(self, uses))
-        return uses
-
-
-# CONST & VAR
-
-
-class Constant(IRNode):
-    """Constant objects from the source code"""
-
-    def __init__(
-        self,
-        parent: Optional[IRNode] = None,
-        value=0,
-        symb=None,
-        symtab: Optional[SymbolTable] = None,
-    ):
-        if not symb:
-            try:
-                symb = standard_types["int"](value=int(value))
-            except Exception:
-                symb = standard_types["float"](value=float(value))
-        super(Constant, self).__init__(parent, symtab, symb)
-        self.mapping = ["value"]
-
-    def lower(self) -> bool:
-        reg = getRegister()
-        self.symtab.append(reg)
-        node = LoadStatement(self.parent, self.value, reg, self.symtab)
-        return self.parent.replace(self, node)
-
-
-class Variable(IRNode):
-    """Class representing read access to both local and global variables"""
-
-    def __init__(
-        self,
-        parent: Optional[IRNode] = None,
-        var=None,
-        symtab: Optional[SymbolTable] = None,
-    ):
-        super(Variable, self).__init__(parent, symtab, var)
-        self.mapping = ["symbol"]
-
-    def lower(self) -> bool:
-        reg = getRegister()
-        self.symtab.append(reg)
-        node = LoadStatement(self.parent, self.symbol, reg, self.symtab)
-        return self.parent.replace(self, node)
-
+from statement import Statement
 
 # EXPRESSION
 
@@ -225,38 +101,6 @@ class CallExpression(Expression):
             self.parent, None, None, self.function, self.symtab
         )
         return self.parent.replace(self, node)
-
-
-class Statement(IRNode):
-    """Statement base node; can have a label"""
-
-    def setLabel(self, label: str) -> None:
-        self.label = label
-        label.value = self  # set target
-
-    def getLabel(self) -> str:
-        return self.label
-
-    def hasLabel(self) -> bool:
-        try:
-            if self.label:
-                return True
-        except Exception:
-            pass
-        return False
-
-    def getFunction(self) -> str | FunctionDefinition:
-        """Find the function to which this statement belong, if any"""
-        if not self.parent:
-            return "global"
-        elif isinstance(self.parent, FunctionDefinition):
-            return self.parent
-        else:
-            return self.parent.getFunction()
-
-    def codegen(self) -> str:
-        """Fallback implementation for codegen"""
-        return self.__repr__()
 
 
 class CallStatement(Statement):
@@ -581,67 +425,6 @@ class StatementList(Statement):
             return False
 
 
-class Block(Statement):
-    """Scope block node"""
-
-    def __init__(
-        self,
-        parent: Optional[IRNode] = None,
-        gl_sym: SymbolTable = None,
-        lc_sym: SymbolTable = None,
-        defs=None,
-        body=None,
-    ):
-        lc_sym.setParent(gl_sym)
-        lc_sym.setScopeBlock(self)
-        super(Block, self).__init__(parent, lc_sym, defs, body)
-        self.mapping = ["defs", "body"]
-
-    def lower(self) -> None:
-        if not self.parent:  # Global Block
-            new_pr = FunctionPrologueStatement()
-            new_ep = ReturnStatement()
-            stlist = StatementList(
-                self,
-                children=[new_pr, self.body, new_ep],
-                symtab=self.body.symtab,
-            )
-            self.body = stlist
-            self.body.setLabel(standard_types["label"]("main"))
-
-    def dataLayout(self):
-        if not self.parent:
-            for s in self.symtab:
-                if not s.storage_class and s.stype not in [
-                    standard_types["label"],
-                    standard_types["function"],
-                ]:
-                    # anything that has not a storage class and is not a label or a function, we place in the global namespace
-                    s.storage_class = "global"
-        # auto layout
-        else:
-            off = 0
-            for s in self.symtab:
-                if not s.storage_class and s.stype not in [
-                    standard_types["label"],
-                    standard_types["function"],
-                ]:
-                    s.storage_class = "auto"
-                    off += s.stype.size / 8
-                    s.offset = off
-            self.symtab.size = off
-        return True
-
-    def navigate(self, action, post: bool = False) -> None:
-        """Redefine navigate to force main to be generated before other functions"""
-        if not post:
-            action(self)
-        self.body.navigate(action, post)
-        self.defs.navigate(action, post)
-        if post:
-            action(self)
-
-
 class Definition(IRNode):
     """Definitions base node"""
 
@@ -675,7 +458,7 @@ class DefinitionList(IRNode):
     def __init__(self, parent: Optional[IRNode] = None, children=[]):
         super(DefinitionList, self).__init__(parent, None, *children)
 
-    def append(self, elem):
+    def append(self, elem: IRNode):
         elem.parent = self
         self.children.append(elem)
 
@@ -684,31 +467,6 @@ def subclasses(cls):
     return set(cls.__subclasses__()).union(
         [s for c in cls.__subclasses__() for s in subclasses(c)]
     )
-
-
-def setup(target):
-    def func(self):
-        return ""
-
-    try:
-        the_target = importlib.import_module(target)
-    except ImportError:
-
-        def func(self):
-            return repr(type(self)) + " " + repr(id(self))
-
-    for the_class in subclasses(IRNode):
-        try:
-            if issubclass(the_class, IRNode):
-                setattr(
-                    the_class,
-                    "codegen",
-                    eval("the_target." + the_class.__name__),
-                )
-        except Exception:
-            setattr(the_class, "codegen", func)
-
-    return the_target.target_info
 
 
 if __name__ == "__main__":

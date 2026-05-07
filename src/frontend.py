@@ -5,17 +5,15 @@ import logging
 import os
 from pathlib import Path
 
-import ir2
+import arm_ir
+from block import Block
 from cfg import CFG
-
-# ir2.setup("arm_ir")  # configurable target
+from constant import Constant
 from ir2 import (
     AssignStatement,
     BinaryExpression,
-    Block,
     CallExpression,
     CallStatement,
-    Constant,
     DefinitionList,
     Expression,
     FunctionDefinition,
@@ -23,7 +21,6 @@ from ir2 import (
     PrintStatement,
     StatementList,
     UnaryExpression,
-    Variable,
     WhileStatement,
 )
 from lexer import Lexer
@@ -36,6 +33,7 @@ from support import (
     lowering,
     print_dotty,
 )
+from variable import Variable
 
 logging.basicConfig(filename="error.log", level=logging.DEBUG)
 
@@ -223,7 +221,7 @@ def block(lexer: Lexer, symtab: SymbolTable) -> Block:
     the_block = Block(gl_sym=symtab, lc_sym=local_vars, defs=defs, body=None)
     stat = statement(lexer, local_vars)
     the_block.body = stat
-    return the_block  # Block(gl_sym=symtab, lc_sym=local_vars, defs=defs, body=stat)
+    return the_block
 
 
 @logger
@@ -236,11 +234,8 @@ def program(lexer: Lexer) -> Block:
     return the_program
 
 
-def run(
-    source: str, target: str = "arm", root_dir: Path = Path(os.getcwd())
-) -> None:
-    """Run the compiler pipeline."""
-    target_info = ir2.setup(target + "_ir")  # configurable target
+def run(source: str, root_dir: Path = Path(os.getcwd())) -> None:
+    """Run the compiler pipeline."""  # configurable target
     the_lexer = Lexer(source)
     res = program(the_lexer)
 
@@ -255,7 +250,7 @@ def run(
     cfg = CFG(res)
     cfg.liveness()
     cfg.print_cfg_to_dot(root_dir / "cfg.dot")
-    cfg.reg_alloc(n=target_info["available_registers"])
+    cfg.reg_alloc(n=arm_ir.target_info["available_registers"])
 
     res.navigate(codegeneration)
 
