@@ -1,13 +1,9 @@
 from typing import Callable, Optional
 
-from ir2 import (
-    FunctionPrologueStatement,
-    ReturnStatement,
-    StatementList,
-)
 from ir_node import IRNode
 from st import SymbolTable, standard_types
 from statement import Statement
+from statements import FunctionPrologueStatement, ReturnStatement, StatementList
 
 
 class Block(Statement):

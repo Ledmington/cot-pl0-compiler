@@ -21,7 +21,7 @@ class Statement(IRNode):
         return False
 
     def getFunction(self) -> str | FunctionDefinition:
-        """Find the function to which this statement belong, if any"""
+        """Find the function to which this statement belongs, if any"""
         if not self.parent:
             return "global"
         elif isinstance(self.parent, FunctionDefinition):

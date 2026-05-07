@@ -5,7 +5,8 @@ import logging
 from functools import reduce
 from pathlib import Path
 
-from ir2 import FunctionDefinition, StatementList
+from ir2 import FunctionDefinition
+from statements import BranchStatement, CallStatement, StatementList
 from support import get_node_list
 
 
@@ -146,8 +147,6 @@ class BasicBlock(object):
 
 def stat_list_to_bb(sl):
     """Support function for converting AST StatList to BBs"""
-    from ir2 import BranchStatement, CallStatement
-
     bbs = []
     newbb = []
     labels = []

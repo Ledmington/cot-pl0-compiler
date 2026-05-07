@@ -1,0 +1,222 @@
+import logging
+from typing import Optional
+
+from block import Block
+from constant import Constant
+from ir2 import (
+    BinaryExpression,
+    CallExpression,
+    DefinitionList,
+    Expression,
+    FunctionDefinition,
+    UnaryExpression,
+)
+from lexer import Lexer
+from logger import logger
+from st import Symbol, SymbolTable, standard_types
+from statement import Statement
+from statements import (
+    AssignStatement,
+    CallStatement,
+    IfStatement,
+    PrintStatement,
+    StatementList,
+    WhileStatement,
+)
+from variable import Variable
+
+symbols = Lexer.symbols.keys()
+
+
+sym = None  # current symbol
+value = None  # current value
+new_sym = None  # next symbol
+new_value = None  # next value
+
+
+def getsym(lexer: Lexer) -> int:
+    """Update sym"""
+    global new_sym
+    global new_value
+    global sym
+    global value
+    try:
+        sym = new_sym
+        value = new_value
+        new_sym, new_value = next(lexer)
+    except StopIteration:
+        return 2
+    logging.debug("getsym: {} {}".format(new_sym, new_value))
+    return 1
+
+
+def error(msg: str) -> None:
+    logging.error(msg + " {} {}".format(new_sym, new_value))
+
+
+def accept(lexer: Lexer, s: str) -> int:
+    logging.debug("accepting {} == {}".format(s, new_sym))
+    return getsym(lexer) if new_sym == s else 0
+
+
+def expect(lexer: Lexer, s: str) -> int:
+    logging.debug("expecting {}".format(s))
+    if accept(lexer, s):
+        return 1
+    error("expect: unexpected symbol")
+    return 0
+
+
+@logger
+def factor(lexer: Lexer, symtab: SymbolTable):
+    if accept(lexer, "ident"):
+        return Variable(var=symtab.find(value), symtab=symtab)
+    if accept(lexer, "number"):
+        return Constant(value=value, symtab=symtab)
+    elif accept(lexer, "lparen"):
+        expr = expression(lexer, symtab)
+        expect(lexer, "rparen")
+        return expr
+    else:
+        error("factor: syntax error")
+        getsym(lexer)
+        return None
+
+
+@logger
+def term(lexer: Lexer, symtab: SymbolTable):
+    op = None
+    expr = factor(lexer, symtab)
+    while new_sym in ["times", "slash"]:
+        getsym(lexer)
+        op = sym
+        expr2 = factor(lexer, symtab)
+        expr = BinaryExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
+    return expr
+
+
+@logger
+def expression(lexer: Lexer, symtab: SymbolTable) -> Expression:
+    op = None
+    if new_sym in ["plus", "minus"]:
+        getsym(lexer)
+        op = sym
+    expr = term(lexer, symtab)
+    if op:
+        expr = UnaryExpression(operand=expr, symtab=symtab)
+    while new_sym in ["plus", "minus"]:
+        getsym(lexer)
+        op = sym
+        expr2 = term(lexer, symtab)
+        expr = BinaryExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
+    return expr
+
+
+@logger
+def condition(lexer: Lexer, symtab: SymbolTable):
+    if accept(lexer, "oddsym"):
+        return UnaryExpression(operand=expression(lexer, symtab), symtab=symtab)
+    else:
+        expr = expression(lexer, symtab)
+        if new_sym in ["eql", "neq", "lss", "leq", "gtr", "geq"]:
+            getsym(lexer)
+            logging.debug("condition operator {} {}".format(sym, new_sym))
+            op = sym
+            expr2 = expression(lexer, symtab)
+            return BinaryExpression(
+                operator=op, op1=expr, op2=expr2, symtab=symtab
+            )
+        else:
+            error("condition: invalid operator")
+            getsym(lexer)
+            return None
+
+
+@logger
+def statement(lexer: Lexer, symtab: SymbolTable) -> Optional[Statement]:
+    if accept(lexer, "ident"):
+        target = symtab.find(value)
+        expect(lexer, "becomes")
+        expr = expression(lexer, symtab)
+        return AssignStatement(target=target, expr=expr, symtab=symtab)
+    elif accept(lexer, "callsym"):
+        expect(lexer, "ident")
+        return CallStatement(
+            call_expr=CallExpression(
+                function=symtab.find(value), symtab=symtab
+            ),
+            symtab=symtab,
+        )
+    elif accept(lexer, "beginsym"):
+        statement_list = StatementList(symtab=symtab)
+        statement_list.append(statement(lexer, symtab))
+        while accept(lexer, "semicolon") == 0:
+            statement_list.append(statement(symtab))
+        expect(lexer, "endsym")
+        statement_list.print_content()
+        return statement_list
+    elif accept(lexer, "ifsym"):
+        cond = condition(lexer, symtab)
+        expect(lexer, "thensym")
+        then = statement(lexer, symtab)
+        return IfStatement(cond=cond, thenpart=then, symtab=symtab)
+    elif accept(lexer, "whilesym"):
+        cond = condition(lexer, symtab)
+        expect(lexer, "dosym")
+        body = statement(lexer, symtab)
+        return WhileStatement(cond=cond, body=body, symtab=symtab)
+    elif accept(lexer, "print"):
+        expect(lexer, "ident")
+        return PrintStatement(symbol=symtab.find(value), symtab=symtab)
+
+    return None
+
+
+@logger
+def block(lexer: Lexer, symtab: SymbolTable) -> Block:
+    local_vars = SymbolTable()
+    defs = DefinitionList()
+    if accept(lexer, "constsym"):
+        expect(lexer, "ident")
+        name = value
+        expect(lexer, "eql")
+        expect(lexer, "number")
+        local_vars.append(Symbol(name, standard_types["int"]))  # , value)
+        while accept(lexer, "comma"):
+            expect(lexer, "ident")
+            name = value
+            expect(lexer, "eql")
+            expect(lexer, "number")
+            local_vars.append(Symbol(name, standard_types["int"]))  # , value)
+        expect(lexer, "semicolon")
+    if accept(lexer, "varsym"):
+        expect(lexer, "ident")
+        local_vars.append(Symbol(value, standard_types["int"]))
+        while accept(lexer, "comma"):
+            expect(lexer, "ident")
+            local_vars.append(Symbol(value, standard_types["int"]))
+        expect(lexer, "semicolon")
+    while accept(lexer, "procsym"):
+        expect(lexer, "ident")
+        fname = value
+        expect(lexer, "semicolon")
+        local_vars.append(Symbol(fname, standard_types["function"]))
+        fbody = block(lexer, local_vars)
+        expect(lexer, "semicolon")
+        defs.append(
+            FunctionDefinition(symbol=local_vars.find(fname), body=fbody)
+        )
+    the_block = Block(gl_sym=symtab, lc_sym=local_vars, defs=defs, body=None)
+    stat = statement(lexer, local_vars)
+    the_block.body = stat
+    return the_block
+
+
+@logger
+def program(lexer: Lexer) -> Block:
+    """Axiom"""
+    global_symtab = SymbolTable()
+    getsym(lexer)
+    the_program = block(lexer, global_symtab)
+    expect(lexer, "period")
+    return the_program
