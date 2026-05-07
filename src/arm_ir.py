@@ -3,36 +3,36 @@ target_info = {
 }
 
 
-def CallStat(self) -> str:
+def call_statement(self) -> str:
     return ""
 
 
-def BranchStat(self) -> str:
-    opcode = "b"
-    if self.operator == "eql":
-        opcode += "eq"
-    elif self.operator == "lss":
-        opcode += "lt"
-    elif self.operator == "gtr":
-        opcode += "gt"
-    elif self.operator == "leq":
-        opcode += "lt"
-    elif self.operator == "geq":
-        opcode += "gt"
-    elif self.operator == "neq":
-        opcode += "ne"
+def branch_statement(self) -> str:
+    match self.operator:
+        case "eql":
+            opcode = "beq"
+        case "lss":
+            opcode = "blt"
+        case "gtr":
+            opcode = "bgt"
+        case "leq":
+            opcode = "blt"
+        case "geq":
+            opcode = "bgt"
+        case "neq":
+            opcode = "bne"
     return "{} {}".format(opcode, self.target.codegen())
 
 
-def BranchLinkStat(self):
+def branch_link_statement(self) -> str:
     return "bl {}".format(self.target.codegen())
 
 
-def EmptyStat(self):
+def empty_stat(self) -> str:
     return ""
 
 
-def StoreStat(self):
+def store_statement(self) -> str:
     if self.symbol.storage_class == "global":
         return "ldr r12, ={}\n\tstr {}, [r12]".format(
             self.symbol.codegen(), self.src.codegen()
@@ -40,7 +40,7 @@ def StoreStat(self):
     return "str {}, [sp, {}]".format(self.src.codegen(), self.symbol.codegen())
 
 
-def LoadStat(self):
+def load_statement(self) -> str:
     if self.symbol.value:
         return "mov {}, {}".format(self.dest.codegen(), self.symbol.codegen())
     if self.symbol.storage_class == "global":
@@ -50,8 +50,7 @@ def LoadStat(self):
     return "ldr {}, [sp, {}]".format(self.dest.codegen(), self.symbol.codegen())
 
 
-def BinStat(self):
-    opcode = "nop"
+def binary_statement(self) -> str:
     if self.operator == "plus":
         opcode = "add"
     elif self.operator == "minus":
@@ -82,8 +81,7 @@ def BinStat(self):
     )
 
 
-def UnStat(self):
-    opcode = "nop"
+def unary_statement(self) -> str:
     if self.operator == "-":
         opcode = "mvn"
     elif self.operator == "odd":
@@ -93,7 +91,7 @@ def UnStat(self):
     return "{} {}, {}".format(opcode, self.dest.codegen(), self.src.codegen())
 
 
-def PrintStat(self):
+def print_statement(self) -> str:
     if self.symbol.storage_class == "global":
         return (
             "push {r0}\n\tldr r12, ="
@@ -107,7 +105,7 @@ def PrintStat(self):
     )
 
 
-def InputStat(self):
+def input_statement(self) -> str:
     if self.symbol.storage_class == "global":
         return (
             "bl read\n\tldr r12, ="
@@ -117,13 +115,13 @@ def InputStat(self):
     return "bl read\n\tstr r0, [sp, {}]".format(self.symbol.codegen())
 
 
-def ReturnStat(self):
+def return_statement(self) -> str:
     if self.size:
         return "add sp, sp, #{}\n\tpop {{pc}}".format(self.size)
     return "pop {pc}"
 
 
-def FunctionPrologueStat(self):
+def function_prologue_statement(self) -> str:
     if self.size:
         return "push {{lr}}\n\tsub sp, sp, #{}".format(self.size)
     return "push {lr}"
@@ -132,7 +130,7 @@ def FunctionPrologueStat(self):
 # COMPOUND NODES
 
 
-def Block(self) -> str:
+def block(self) -> str:
     res = "\n"
 
     # If this block has no parent, it means this is block with the main() function,
@@ -149,7 +147,7 @@ def Block(self) -> str:
     return res
 
 
-def FunctionDef(self) -> str:
+def function_definition(self) -> str:
     return "\n\t.global {}\n\t.type {}, %function\n{}: ".format(
         self.symbol.codegen(), self.symbol.codegen(), self.symbol.codegen()
     )

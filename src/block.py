@@ -1,8 +1,9 @@
 from typing import Callable, Optional
 
+from statement import Statement
+
 from ir_node import IRNode
 from st import SymbolTable, standard_types
-from statement import Statement
 from statements import FunctionPrologueStatement, ReturnStatement, StatementList
 
 
@@ -31,7 +32,7 @@ class Block(Statement):
                 symtab=self.body.symtab,
             )
             self.body = stlist
-            self.body.setLabel(standard_types["label"]("main"))
+            self.body.set_label(standard_types["label"]("main"))
 
     def dataLayout(self) -> bool:
         if not self.parent:

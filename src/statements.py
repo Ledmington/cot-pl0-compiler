@@ -10,7 +10,7 @@ from st import SymbolTable, getRegister, standard_types
 class Statement(IRNode):
     """Statement base node; can have a label"""
 
-    def setLabel(self, label: str) -> None:
+    def set_label(self, label: str) -> None:
         self.label = label
         label.value = self  # set target
 
@@ -73,7 +73,7 @@ class IfStatement(Statement):
             raise Exception("Lowering of if-else not implemented yet!")
         out_label = standard_types["label"]()
         end = EmptyStatement()
-        end.setLabel(out_label)
+        end.set_label(out_label)
         reg = getRegister()
         self.symtab.append(reg)
         ncond = UnaryStatement(
@@ -112,7 +112,7 @@ class WhileStatement(Statement):
         out_label = standard_types["label"]()
         back_label = standard_types["label"]()
         end = EmptyStatement()
-        end.setLabel(out_label)
+        end.set_label(out_label)
         reg = getRegister()
         self.symtab.append(reg)
         branch_out = BranchStatement(
@@ -125,7 +125,7 @@ class WhileStatement(Statement):
         branch_back = BranchStatement(
             self.parent, None, None, back_label, self.symtab
         )
-        self.cond.setLabel(back_label)
+        self.cond.set_label(back_label)
         logging.debug(
             "{} attached to {}".format(self.cond.getLabel(), self.cond)
         )
@@ -334,8 +334,8 @@ class StatementList(Statement):
             logging.debug("{} ".format(id(n)))
         logging.debug("]")
 
-    def setLabel(self, label):
-        self.children[0].setLabel(label)
+    def set_label(self, label):
+        self.children[0].set_label(label)
 
     def flatten(self):
         """Remove nested StatLists"""
