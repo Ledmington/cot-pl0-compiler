@@ -84,19 +84,6 @@ class Symbol(object):
         self.register = None
         self.offset = 0
 
-    def codegen(self):
-        if self.storage_class == "const":
-            return "#{}".format(self.value)
-        if self.storage_class == "global":
-            return self.name
-        if self.storage_class == "register" and self.register is not None:
-            return "r{}".format(self.register)
-        if self.storage_class == "auto":
-            return "#{}".format(
-                self.offset - 4
-            )  # bit of a hack (this 4 should be taken from a config file, but it's fine for this toy compiler)
-        return self.name
-
     def __repr__(self):
         res = self.stype.name + " " + self.name
         res += (" " + repr(self.value) + " const" if self.value else "") + " "
@@ -105,9 +92,6 @@ class Symbol(object):
 
 
 class LabelSymbol(Symbol):
-    def codegen(self):
-        return self.name
-
     def __repr__(self) -> str:
         return "label " + self.name
 

@@ -51,24 +51,6 @@ def get_symbol_tables(root):
     return node_list
 
 
-def codeGeneration(node):
-    """Code generation for a node
-    Prevents errors from blocking execution as some nodes do not need to generate anything
-    """
-    logging.info("Generating code for {} {}".format(type(node), id(node)))
-    try:
-        print(node.get_label().codegen(), ":")
-    except Exception:
-        print("\t")
-    try:
-        check = node.codegen()
-        if check is None:
-            logging.debug("Failed!")
-        print(check)
-    except Exception as e:
-        logging.debug("{} {}".format(type(node), e))
-
-
 def dotty_wrapper(fout) -> Callable[..., str | Any]:
     """Main function for graphviz dot output generation"""
 

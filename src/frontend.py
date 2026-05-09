@@ -7,15 +7,13 @@ from pathlib import Path
 
 import arm_ir
 from cfg import CFG
+from codegen import codeGeneration
 from flattening import flattening
 from layout import layout
 from lexer import Lexer
 from lowering import lowering
 from parser import program
-from support import (
-    codeGeneration,
-    print_dotty,
-)
+from support import print_dotty
 
 logging.basicConfig(
     filename="error.log",

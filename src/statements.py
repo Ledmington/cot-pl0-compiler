@@ -33,10 +33,6 @@ class Statement(IRNode):
         else:
             return self.parent.get_function()
 
-    def codegen(self) -> str:
-        """Fallback implementation for codegen"""
-        return self.__repr__()
-
 
 class CallStatement(Statement):
     """Procedure call (non-returning)"""
