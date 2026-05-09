@@ -2,7 +2,6 @@ from typing import Optional
 
 from ir_node import IRNode
 from st import standard_types
-from statements import FunctionPrologueStatement, ReturnStatement, StatementList
 
 
 class Definition(IRNode):
@@ -24,12 +23,6 @@ class FunctionDefinition(Definition):
         return self.body.global_symtab.exclude(
             [standard_types["function"], standard_types["label"]]
         )
-
-    def lower(self):
-        new_pr = FunctionPrologueStatement()
-        new_ep = ReturnStatement()
-        slist = StatementList(self, children=[new_pr, self.body, new_ep])
-        self.body = slist
 
 
 class DefinitionList(IRNode):

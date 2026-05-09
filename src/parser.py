@@ -1,16 +1,13 @@
 import logging
 from typing import Optional
 
-from statement import Statement
-
 from block import Block
 from constant import Constant
+from definitions import DefinitionList, FunctionDefinition
 from ir2 import (
     BinaryExpression,
     CallExpression,
-    DefinitionList,
     Expression,
-    FunctionDefinition,
     UnaryExpression,
 )
 from lexer import Lexer
@@ -21,6 +18,7 @@ from statements import (
     CallStatement,
     IfStatement,
     PrintStatement,
+    Statement,
     StatementList,
     WhileStatement,
 )

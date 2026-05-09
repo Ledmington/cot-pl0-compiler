@@ -3,14 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from ir_node import IRNode
-from st import SymbolTable, getRegister
-from statements import (
-    BinaryStatement,
-    BranchLinkStatement,
-    StatementList,
-)
-
-# EXPRESSION
+from st import SymbolTable
 
 
 class Expression(IRNode):
@@ -41,15 +34,6 @@ class BinaryExpression(Expression):
     def get_operands(self):
         return self.children[1:]
 
-    def lower(self) -> bool:
-        reg = getRegister()
-        self.symtab.append(reg)
-        node = BinaryStatement(
-            self, self.operator, reg, self.op1.dest, self.op2.dest, self.symtab
-        )
-        slist = StatementList(self.parent, children=[self.op1, self.op2, node])
-        return self.parent.replace(self, slist)
-
 
 class UnaryExpression(Expression):
     """Unary Expression node, characterized by an operator field and an operand"""
@@ -65,15 +49,6 @@ class UnaryExpression(Expression):
 
     def get_operand(self):
         return self.operand
-
-    def lower(self) -> bool:
-        reg = getRegister()
-        self.symtab.append(reg)
-        node = BinaryStatement(
-            self, self.operator, reg, self.operand.dest, self.symtab
-        )
-        slist = StatementList(self.parent, children=[self.operand, node])
-        return self.parent.replace(self, slist)
 
 
 class CallExpression(Expression):
@@ -97,12 +72,6 @@ class CallExpression(Expression):
 
     def get_parameters(self):
         return self.children[1:]
-
-    def lower(self) -> bool:
-        node = BranchLinkStatement(
-            self.parent, None, None, self.function, self.symtab
-        )
-        return self.parent.replace(self, node)
 
 
 def subclasses(cls):

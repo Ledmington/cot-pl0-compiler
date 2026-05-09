@@ -7,19 +7,28 @@ from pathlib import Path
 from typing import Any, Callable
 
 from block import Block
+from constant import Constant
+from definitions import FunctionDefinition
+from ir2 import BinaryExpression, CallExpression, UnaryExpression
 from lexer import Lexer
 from st import getRegister, standard_types
 from statements import (
     AssignStatement,
+    BinaryStatement,
+    BranchLinkStatement,
     BranchStatement,
     EmptyStatement,
+    FunctionPrologueStatement,
     IfStatement,
+    LoadStatement,
+    ReturnStatement,
     Statement,
     StatementList,
     StoreStatement,
     UnaryStatement,
     WhileStatement,
 )
+from variable import Variable
 
 
 def get_node_list(root: Block):
@@ -73,6 +82,26 @@ def lowering(node) -> None:
             logging.debug("Failed!")
     except Exception as e:
         logging.debug("Cannot lower {} {}".format(type(node), e))
+
+
+def lower(stmt: Block) -> None:
+    if not stmt.parent:  # Global Block
+        new_pr = FunctionPrologueStatement()
+        new_ep = ReturnStatement()
+        stlist = StatementList(
+            stmt,
+            children=[new_pr, stmt.body, new_ep],
+            symtab=stmt.body.symtab,
+        )
+        stmt.body = stlist
+        stmt.body.set_label(standard_types["label"]("main"))
+
+
+def lower(func_def: FunctionDefinition):
+    new_pr = FunctionPrologueStatement()
+    new_ep = ReturnStatement()
+    slist = StatementList(func_def, children=[new_pr, func_def.body, new_ep])
+    func_def.body = slist
 
 
 def lower(stmt: WhileStatement) -> bool:
@@ -130,6 +159,47 @@ def lower(stmt: IfStatement) -> bool:
         ],
     )
     return stmt.parent.replace(stmt, slist)
+
+
+def lower(expr: UnaryExpression) -> bool:
+    reg = getRegister()
+    expr.symtab.append(reg)
+    node = BinaryStatement(
+        expr, expr.operator, reg, expr.operand.dest, expr.symtab
+    )
+    slist = StatementList(expr.parent, children=[expr.operand, node])
+    return expr.parent.replace(expr, slist)
+
+
+def lower(expr: BinaryExpression) -> bool:
+    reg = getRegister()
+    expr.symtab.append(reg)
+    node = BinaryStatement(
+        expr, expr.operator, reg, expr.op1.dest, expr.op2.dest, expr.symtab
+    )
+    slist = StatementList(expr.parent, children=[expr.op1, expr.op2, node])
+    return expr.parent.replace(expr, slist)
+
+
+def lower(expr: CallExpression) -> bool:
+    node = BranchLinkStatement(
+        expr.parent, None, None, expr.function, expr.symtab
+    )
+    return expr.parent.replace(expr, node)
+
+
+def lower(const: Constant) -> bool:
+    reg = getRegister()
+    const.symtab.append(reg)
+    node = LoadStatement(const.parent, const.value, reg, const.symtab)
+    return const.parent.replace(const, node)
+
+
+def lower(var: Variable) -> bool:
+    reg = getRegister()
+    var.symtab.append(reg)
+    node = LoadStatement(var.parent, var.symbol, reg, var.symtab)
+    return var.parent.replace(var, node)
 
 
 def flattening(node):

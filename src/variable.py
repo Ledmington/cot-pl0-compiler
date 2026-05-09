@@ -1,8 +1,7 @@
 from typing import Optional
 
-from ir2 import LoadStatement
 from ir_node import IRNode
-from st import SymbolTable, getRegister
+from st import SymbolTable
 
 
 class Variable(IRNode):
@@ -16,9 +15,3 @@ class Variable(IRNode):
     ):
         super(Variable, self).__init__(parent, symtab, var)
         self.mapping = ["symbol"]
-
-    def lower(self) -> bool:
-        reg = getRegister()
-        self.symtab.append(reg)
-        node = LoadStatement(self.parent, self.symbol, reg, self.symtab)
-        return self.parent.replace(self, node)

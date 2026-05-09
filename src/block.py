@@ -1,10 +1,8 @@
 from typing import Callable, Optional
 
-from statement import Statement
-
 from ir_node import IRNode
 from st import SymbolTable, standard_types
-from statements import FunctionPrologueStatement, ReturnStatement, StatementList
+from statements import Statement
 
 
 class Block(Statement):
@@ -21,18 +19,6 @@ class Block(Statement):
         lc_sym.setParent(gl_sym)
         super(Block, self).__init__(parent, lc_sym, defs, body)
         self.mapping = ["defs", "body"]
-
-    def lower(self) -> None:
-        if not self.parent:  # Global Block
-            new_pr = FunctionPrologueStatement()
-            new_ep = ReturnStatement()
-            stlist = StatementList(
-                self,
-                children=[new_pr, self.body, new_ep],
-                symtab=self.body.symtab,
-            )
-            self.body = stlist
-            self.body.set_label(standard_types["label"]("main"))
 
     def dataLayout(self) -> bool:
         if not self.parent:
