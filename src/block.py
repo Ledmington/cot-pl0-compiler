@@ -20,30 +20,6 @@ class Block(Statement):
         super(Block, self).__init__(parent, lc_sym, defs, body)
         self.mapping = ["defs", "body"]
 
-    def dataLayout(self) -> bool:
-        if not self.parent:
-            for s in self.symtab:
-                if not s.storage_class and s.stype not in [
-                    standard_types["label"],
-                    standard_types["function"],
-                ]:
-                    # anything that has not a storage class and is not a label or a function, we place in the global namespace
-                    s.storage_class = "global"
-        else:
-            # auto layout
-            off = 0
-            for s in self.symtab:
-                if not s.storage_class and s.stype not in [
-                    standard_types["label"],
-                    standard_types["function"],
-                ]:
-                    s.storage_class = "auto"
-                    off += s.stype.size / 8
-                    s.offset = off
-            self.symtab.size = off
-
-        return True
-
     def navigate(
         self, action: Callable[[IRNode], None], post: bool = False
     ) -> None:

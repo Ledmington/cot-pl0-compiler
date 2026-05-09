@@ -51,18 +51,6 @@ def get_symbol_tables(root):
     return node_list
 
 
-def layout(node):
-    """Flattening action for a node
-    (only StatList nodes are actually flattened)"""
-    try:
-        check = node.dataLayout()
-        logging.debug("Data Layout {} {}".format(type(node), id(node)))
-        if not check:
-            logging.debug("Failed!")
-    except Exception as e:
-        logging.debug("{} {}".format(type(node), e))
-
-
 def codeGeneration(node):
     """Code generation for a node
     Prevents errors from blocking execution as some nodes do not need to generate anything

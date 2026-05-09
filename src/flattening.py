@@ -4,6 +4,7 @@ from statements import StatementList
 
 logger = logging.getLogger("flattening")
 
+
 def flattening(node):
     """Flattening action for a node
     (only StatList nodes are actually flattened)"""
