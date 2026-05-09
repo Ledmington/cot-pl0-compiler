@@ -5,7 +5,6 @@ from constant import Constant
 from definitions import FunctionDefinition
 from ir2 import BinaryExpression, CallExpression, UnaryExpression
 from lexer import Lexer
-from symbol_table import getRegister, standard_types
 from statements import (
     AssignStatement,
     BinaryStatement,
@@ -21,6 +20,7 @@ from statements import (
     UnaryStatement,
     WhileStatement,
 )
+from symbol_table import getRegister, standard_types
 from variable import Variable
 
 logger = logging.getLogger("lowering")

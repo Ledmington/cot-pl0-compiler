@@ -3,6 +3,7 @@ from typing import Optional
 
 from block import Block
 from constant import Constant
+from debug_logger import debug_logger
 from definitions import DefinitionList, FunctionDefinition
 from ir2 import (
     BinaryExpression,
@@ -11,8 +12,6 @@ from ir2 import (
     UnaryExpression,
 )
 from lexer import Lexer
-from debug_logger import debug_logger
-from symbol_table import Symbol, SymbolTable, standard_types
 from statements import (
     AssignStatement,
     CallStatement,
@@ -22,6 +21,7 @@ from statements import (
     StatementList,
     WhileStatement,
 )
+from symbol_table import Symbol, SymbolTable, standard_types
 from variable import Variable
 
 logger = logging.getLogger("parser")

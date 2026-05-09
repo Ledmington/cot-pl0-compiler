@@ -51,18 +51,6 @@ def get_symbol_tables(root):
     return node_list
 
 
-def flattening(node):
-    """Flattening action for a node
-    (only StatList nodes are actually flattened)"""
-    try:
-        check = node.flatten()
-        logging.debug("Flattening {} {}".format(type(node), id(node)))
-        if not check:
-            logging.debug("Failed!")
-    except Exception as e:
-        logging.debug("{} {}".format(type(node), e))
-
-
 def layout(node):
     """Flattening action for a node
     (only StatList nodes are actually flattened)"""

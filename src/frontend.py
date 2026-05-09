@@ -7,12 +7,12 @@ from pathlib import Path
 
 import arm_ir
 from cfg import CFG
+from flattening import flattening
 from lexer import Lexer
 from lowering import lowering
 from parser import program
 from support import (
     codeGeneration,
-    flattening,
     layout,
     print_dotty,
 )

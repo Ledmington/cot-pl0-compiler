@@ -1,8 +1,8 @@
 from typing import Callable, Optional
 
 from ir_node import IRNode
-from symbol_table import SymbolTable, standard_types
 from statements import Statement
+from symbol_table import SymbolTable, standard_types
 
 
 class Block(Statement):

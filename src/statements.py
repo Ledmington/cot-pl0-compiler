@@ -275,26 +275,3 @@ class StatementList(Statement):
 
     def set_label(self, label):
         self.children[0].set_label(label)
-
-    def flatten(self):
-        """Remove nested StatLists"""
-        if isinstance(self.parent, StatementList):
-            logging.debug(
-                "Flattening {} into {}".format(id(self), id(self.parent))
-            )
-            for c in self.children:
-                c.parent = self.parent
-            i = self.parent.children.index(self)
-            self.parent.children = (
-                self.parent.children[:i]
-                + self.children
-                + self.parent.children[i + 1 :]
-            )
-            return True
-        else:
-            logging.debug(
-                "Not flattening {} into {} of type {}".format(
-                    id(self), id(self.parent), type(self.parent)
-                )
-            )
-            return False

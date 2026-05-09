@@ -9,7 +9,6 @@ from definitions import FunctionDefinition
 from statements import BranchStatement, CallStatement, StatementList
 from support import get_node_list
 
-
 logger = logging.getLogger("cfg")
 
 
