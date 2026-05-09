@@ -17,7 +17,8 @@ qemu--aarch64 ./a.out
 
 ## How to contribute
 ```bash
-uv run ruff format
+uv run ruff format .
+uv run ruff check --select I .
 uv run ty check
 uv run pytest
 ```
