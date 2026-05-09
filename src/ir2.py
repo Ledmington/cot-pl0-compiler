@@ -73,6 +73,9 @@ class CallExpression(Expression):
     def get_parameters(self):
         return self.children[1:]
 
+    def __repr__(self) -> str:
+        return f"CallExpression({self.children})"
+
 
 def subclasses(cls):
     return set(cls.__subclasses__()).union(
