@@ -75,7 +75,7 @@ def layout(node):
         logging.debug("{} {}".format(type(node), e))
 
 
-def codegeneration(node):
+def codeGeneration(node):
     """Code generation for a node
     Prevents errors from blocking execution as some nodes do not need to generate anything
     """

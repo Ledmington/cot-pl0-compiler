@@ -1,7 +1,7 @@
 from typing import Optional
 
 from ir_node import IRNode
-from st import standard_types
+from symbol_table import standard_types
 
 
 class Definition(IRNode):

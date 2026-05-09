@@ -1,7 +1,7 @@
 from typing import Callable, Optional
 
 from ir_node import IRNode
-from st import SymbolTable, standard_types
+from symbol_table import SymbolTable, standard_types
 from statements import Statement
 
 

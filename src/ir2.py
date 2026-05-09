@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from ir_node import IRNode
-from st import SymbolTable
+from symbol_table import SymbolTable
 
 
 class Expression(IRNode):

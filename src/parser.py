@@ -11,8 +11,8 @@ from ir2 import (
     UnaryExpression,
 )
 from lexer import Lexer
-from logger import logger
-from st import Symbol, SymbolTable, standard_types
+from debug_logger import debug_logger
+from symbol_table import Symbol, SymbolTable, standard_types
 from statements import (
     AssignStatement,
     CallStatement,
@@ -23,6 +23,8 @@ from statements import (
     WhileStatement,
 )
 from variable import Variable
+
+logger = logging.getLogger("parser")
 
 symbols = Lexer.symbols.keys()
 
@@ -45,28 +47,28 @@ def getsym(lexer: Lexer) -> int:
         new_sym, new_value = next(lexer)
     except StopIteration:
         return 2
-    logging.debug("getsym: {} {}".format(new_sym, new_value))
+    logger.debug("getsym: {} {}".format(new_sym, new_value))
     return 1
 
 
 def error(msg: str) -> None:
-    logging.error(msg + " {} {}".format(new_sym, new_value))
+    logger.error(msg + " {} {}".format(new_sym, new_value))
 
 
 def accept(lexer: Lexer, s: str) -> int:
-    logging.debug("accepting {} == {}".format(s, new_sym))
+    logger.debug("accepting {} == {}".format(s, new_sym))
     return getsym(lexer) if new_sym == s else 0
 
 
 def expect(lexer: Lexer, s: str) -> int:
-    logging.debug("expecting {}".format(s))
+    logger.debug("expecting {}".format(s))
     if accept(lexer, s):
         return 1
     error("expect: unexpected symbol")
     return 0
 
 
-@logger
+@debug_logger
 def factor(lexer: Lexer, symtab: SymbolTable):
     if accept(lexer, "ident"):
         return Variable(var=symtab.find(value), symtab=symtab)
@@ -82,7 +84,7 @@ def factor(lexer: Lexer, symtab: SymbolTable):
         return None
 
 
-@logger
+@debug_logger
 def term(lexer: Lexer, symtab: SymbolTable):
     op = None
     expr = factor(lexer, symtab)
@@ -94,7 +96,7 @@ def term(lexer: Lexer, symtab: SymbolTable):
     return expr
 
 
-@logger
+@debug_logger
 def expression(lexer: Lexer, symtab: SymbolTable) -> Expression:
     op = None
     if new_sym in ["plus", "minus"]:
@@ -111,7 +113,7 @@ def expression(lexer: Lexer, symtab: SymbolTable) -> Expression:
     return expr
 
 
-@logger
+@debug_logger
 def condition(lexer: Lexer, symtab: SymbolTable):
     if accept(lexer, "oddsym"):
         return UnaryExpression(operand=expression(lexer, symtab), symtab=symtab)
@@ -119,7 +121,7 @@ def condition(lexer: Lexer, symtab: SymbolTable):
         expr = expression(lexer, symtab)
         if new_sym in ["eql", "neq", "lss", "leq", "gtr", "geq"]:
             getsym(lexer)
-            logging.debug("condition operator {} {}".format(sym, new_sym))
+            logger.debug("condition operator {} {}".format(sym, new_sym))
             op = sym
             expr2 = expression(lexer, symtab)
             return BinaryExpression(
@@ -131,7 +133,7 @@ def condition(lexer: Lexer, symtab: SymbolTable):
             return None
 
 
-@logger
+@debug_logger
 def statement(lexer: Lexer, symtab: SymbolTable) -> Optional[Statement]:
     if accept(lexer, "ident"):
         target = symtab.find(value)
@@ -171,7 +173,7 @@ def statement(lexer: Lexer, symtab: SymbolTable) -> Optional[Statement]:
     return None
 
 
-@logger
+@debug_logger
 def block(lexer: Lexer, symtab: SymbolTable) -> Block:
     local_vars = SymbolTable()
     defs = DefinitionList()
@@ -211,7 +213,7 @@ def block(lexer: Lexer, symtab: SymbolTable) -> Block:
     return the_block
 
 
-@logger
+@debug_logger
 def program(lexer: Lexer) -> Block:
     """Axiom"""
     global_symtab = SymbolTable()

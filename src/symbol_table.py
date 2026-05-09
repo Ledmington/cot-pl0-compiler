@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-# SYMBOLS AND TYPES
+logger = logging.getLogger("symtab")
+
 basetypes = ["Int", "Float", "Label", "Struct", "Function"]
 qualifiers = ["unsigned"]
 
@@ -113,20 +114,20 @@ class LabelSymbol(Symbol):
 
 class SymbolTable(list):
     def find(self, name: str) -> Optional[Symbol]:
-        logging.debug("Looking up {}".format(name))
+        logger.debug("Looking up {}".format(name))
 
         for s in self:
             if s.name == name:
                 return s
 
-        logging.debug("Looking up in parent")
+        logger.debug("Looking up in parent")
 
         try:
             return self.parent.find(name)
         except Exception:
             pass
 
-        logging.debug("Looking up failed!")
+        logger.debug("Looking up failed!")
 
         return None
 

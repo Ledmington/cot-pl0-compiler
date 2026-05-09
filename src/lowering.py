@@ -5,7 +5,7 @@ from constant import Constant
 from definitions import FunctionDefinition
 from ir2 import BinaryExpression, CallExpression, UnaryExpression
 from lexer import Lexer
-from st import getRegister, standard_types
+from symbol_table import getRegister, standard_types
 from statements import (
     AssignStatement,
     BinaryStatement,
@@ -23,17 +23,19 @@ from statements import (
 )
 from variable import Variable
 
+logger = logging.getLogger("lowering")
+
 
 def lowering(node) -> None:
     """Lowering action for a node
     (all high level nodes can be lowered to lower-level representation"""
     try:
-        logging.debug("Lowering {} {}".format(type(node), id(node)))
+        logger.debug("Lowering {} {}".format(type(node), id(node)))
         check = lower(node)
         if not check:
-            logging.debug("Failed!")
+            logger.debug("Failed!")
     except Exception as e:
-        logging.debug("Cannot lower {} {}".format(type(node), e))
+        logger.debug("Cannot lower {} {}".format(type(node), e))
 
 
 def lower(stmt: Block) -> None:
@@ -74,7 +76,7 @@ def lower(stmt: WhileStatement) -> bool:
         stmt.parent, None, None, back_label, stmt.symtab
     )
     stmt.cond.set_label(back_label)
-    logging.debug("{} attached to {}".format(stmt.cond.get_label(), stmt.cond))
+    logger.debug("{} attached to {}".format(stmt.cond.get_label(), stmt.cond))
     slist = StatementList(
         stmt.parent,
         children=[stmt.cond, branch_out, stmt.body, branch_back, end],

@@ -11,13 +11,19 @@ from lexer import Lexer
 from lowering import lowering
 from parser import program
 from support import (
-    codegeneration,
+    codeGeneration,
     flattening,
     layout,
     print_dotty,
 )
 
-logging.basicConfig(filename="error.log", level=logging.DEBUG)
+logging.basicConfig(
+    filename="error.log",
+    filemode="w",
+    format="[%(levelname)s][%(name)s] %(message)s",
+    level=logging.DEBUG,
+)
+logger = logging.getLogger("frontend")
 
 
 def run(source: str, root_dir: Path = Path(os.getcwd())) -> None:
@@ -27,7 +33,7 @@ def run(source: str, root_dir: Path = Path(os.getcwd())) -> None:
 
     res.navigate(lowering, post=True)
     res.navigate(flattening, post=True)
-    logging.debug("\n {} \n".format(res))
+    logger.debug("\n {} \n".format(res))
 
     res.navigate(layout, post=True)
 
@@ -38,7 +44,7 @@ def run(source: str, root_dir: Path = Path(os.getcwd())) -> None:
     cfg.print_cfg_to_dot(root_dir / "cfg.dot")
     cfg.reg_alloc(n=arm_ir.target_info["available_registers"])
 
-    res.navigate(codegeneration)
+    res.navigate(codeGeneration)
 
 
 def main() -> None:
@@ -49,10 +55,10 @@ def main() -> None:
     args = parser.parse_args()
 
     filename = args.filename
-    logging.debug("Reading input source from {}".format(filename))
+    logger.debug("Reading input source from {}".format(filename))
     source = open(filename, "r").read()
 
-    logging.debug(
+    logger.debug(
         """
 *********************************************
     Starting debug with program '{}'
@@ -60,7 +66,7 @@ def main() -> None:
     """.format(filename)
     )
 
-    logging.debug(
+    logger.debug(
         """
 ***** Program '{}' source *****
 {}

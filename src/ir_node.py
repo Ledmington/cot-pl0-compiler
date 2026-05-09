@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Callable, Optional
 
-from st import SymbolTable
+from symbol_table import SymbolTable
 
 
 class IRNode(object):

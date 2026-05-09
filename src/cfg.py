@@ -10,6 +10,9 @@ from statements import BranchStatement, CallStatement, StatementList
 from support import get_node_list
 
 
+logger = logging.getLogger("cfg")
+
+
 class BasicBlock(object):
     def __init__(self, next=None, instrs=None, labels=None):
         """Structure:
@@ -311,8 +314,8 @@ class CFG(list):
 
         ig = set(ig)
         regs = set(regs)
-        logging.debug("Registers: {}".format(regs))
-        logging.debug("Interference Graph: {}".format(ig))
+        logger.debug("Registers: {}".format(regs))
+        logger.debug("Interference Graph: {}".format(ig))
         registers = set(range(8))
 
         def getInterf(r, ig):

@@ -3,7 +3,7 @@ from typing import Optional
 
 from definitions import FunctionDefinition
 from ir_node import IRNode
-from st import SymbolTable
+from symbol_table import SymbolTable
 
 
 class Statement(IRNode):
