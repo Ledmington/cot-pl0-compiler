@@ -1,73 +1,75 @@
 from __future__ import annotations
 
 import re
+from enum import Enum
 from typing import Iterator, Optional
 
 
-class Lexer(Iterator[tuple[str, str]]):
-    """Simple lazy lexer for PL/0"""
+class Token(Enum):
+    LPAREN = ["("]
+    RPAREN = [")"]
+    TIMES = ["*"]
+    SLASH = ["/"]
+    PLUS = ["+"]
+    MINUS = ["-"]
+    EQL = ["="]
+    NEQ = ["!="]
+    LSS = ["<"]
+    LEQ = ["<="]
+    GTR = [">"]
+    GEQ = [">="]
+    CALL = ["call"]
+    BEGIN = ["begin"]
+    SEMICOLON = [";"]
+    END = ["end"]
+    IF = ["if"]
+    WHILE = ["while"]
+    BECOMES = [":="]
+    THEN = ["then"]
+    DO = ["do"]
+    CONST = ["const"]
+    COMMA = [","]
+    VAR = ["var"]
+    PROCEDURE = ["procedure"]
+    PERIOD = ["."]
+    ODD = ["odd"]
+    PRINT = ["!", "print"]
+    NUMBER = []
+    IDENT = []
 
-    symbols: dict[str, list[str]] = {
-        "lparen": ["("],
-        "rparen": [")"],
-        "times": ["*"],
-        "slash": ["/"],
-        "plus": ["+"],
-        "minus": ["-"],
-        "eql": ["="],
-        "neq": ["!="],
-        "lss": ["<"],
-        "leq": ["<="],
-        "gtr": [">"],
-        "geq": [">="],
-        "callsym": ["call"],
-        "beginsym": ["begin"],
-        "semicolon": [";"],
-        "endsym": ["end"],
-        "ifsym": ["if"],
-        "whilesym": ["while"],
-        "becomes": [":="],
-        "thensym": ["then"],
-        "dosym": ["do"],
-        "constsym": ["const"],
-        "comma": [","],
-        "varsym": ["var"],
-        "procsym": ["procedure"],
-        "period": ["."],
-        "oddsym": ["odd"],
-        "print": ["!", "print"],
-    }
+    @classmethod
+    def from_word(cls, word: str) -> Token:
+        for token in cls:
+            if word in token.value:
+                return token
+        try:
+            float(word)
+            return cls.NUMBER
+        except ValueError:
+            return cls.IDENT
+
+
+class Lexer(Iterator[tuple[Token, str]]):
+    """Simple lazy lexer for PL/0"""
 
     def __init__(self, text: str) -> None:
         self.text = text
-        self._iterator: Optional[Iterator[tuple[str, str]]] = None
+        self._iterator: Optional[Iterator[tuple[Token, str]]] = None
 
-    def _generate(self) -> Iterator[tuple[str, str]]:
+    def _generate(self) -> Iterator[tuple[Token, str]]:
         t = re.split(r"(\W+)", self.text)
         text = " ".join(t)
         words = (w.strip() for w in text.lower().split())
 
         for word in words:
-            if word:  # skip empty strings defensively
-                yield self.token(word), word
-
-    @classmethod
-    def token(cls, word: str) -> str:
-        for s, values in cls.symbols.items():
-            if word in values:
-                return s
-        try:
-            float(word)
-            return "number"
-        except ValueError:
-            return "ident"
+            if word:
+                yield Token.from_word(word), word
 
     def __iter__(self) -> Lexer:
-        # create a fresh generator each time iteration starts
         self._iterator = self._generate()
         return self
 
-    def __next__(self) -> tuple[str, str]:
+    def __next__(self) -> tuple[Token, str]:
         if self._iterator is None:
             self._iterator = self._generate()
         return next(self._iterator)

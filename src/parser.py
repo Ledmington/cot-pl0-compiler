@@ -11,7 +11,7 @@ from ir2 import (
     Expression,
     UnaryExpression,
 )
-from lexer import Lexer
+from lexer import Lexer, Token
 from statements import (
     AssignStatement,
     CallStatement,
@@ -25,8 +25,6 @@ from symbol_table import Symbol, SymbolTable, standard_types
 from variable import Variable
 
 logger = logging.getLogger("parser")
-
-symbols = Lexer.symbols.keys()
 
 
 sym = None  # current symbol
@@ -55,14 +53,14 @@ def error(msg: str) -> None:
     logger.error(msg + " {} {}".format(new_sym, new_value))
 
 
-def accept(lexer: Lexer, s: str) -> int:
-    logger.debug("accepting {} == {}".format(s, new_sym))
-    return getsym(lexer) if new_sym == s else 0
+def accept(lexer: Lexer, t: Token) -> int:
+    logger.debug("accepting {} == {}".format(t, new_sym))
+    return getsym(lexer) if new_sym == t else 0
 
 
-def expect(lexer: Lexer, s: str) -> int:
-    logger.debug("expecting {}".format(s))
-    if accept(lexer, s):
+def expect(lexer: Lexer, t: Token) -> int:
+    logger.debug("expecting {}".format(t))
+    if accept(lexer, t):
         return 1
     error("expect: unexpected symbol")
     return 0
@@ -70,13 +68,13 @@ def expect(lexer: Lexer, s: str) -> int:
 
 @debug_logger
 def factor(lexer: Lexer, symtab: SymbolTable):
-    if accept(lexer, "ident"):
+    if accept(lexer, Token.IDENT):
         return Variable(var=symtab.find(value), symtab=symtab)
-    if accept(lexer, "number"):
+    if accept(lexer, Token.NUMBER):
         return Constant(value=value, symtab=symtab)
-    elif accept(lexer, "lparen"):
+    elif accept(lexer, Token.LPAREN):
         expr = expression(lexer, symtab)
-        expect(lexer, "rparen")
+        expect(lexer, Token.RPAREN)
         return expr
     else:
         error("factor: syntax error")
@@ -88,7 +86,7 @@ def factor(lexer: Lexer, symtab: SymbolTable):
 def term(lexer: Lexer, symtab: SymbolTable):
     op = None
     expr = factor(lexer, symtab)
-    while new_sym in ["times", "slash"]:
+    while new_sym in [Token.TIMES, Token.SLASH]:
         getsym(lexer)
         op = sym
         expr2 = factor(lexer, symtab)
@@ -99,13 +97,13 @@ def term(lexer: Lexer, symtab: SymbolTable):
 @debug_logger
 def expression(lexer: Lexer, symtab: SymbolTable) -> Expression:
     op = None
-    if new_sym in ["plus", "minus"]:
+    if new_sym in [Token.PLUS, Token.MINUS]:
         getsym(lexer)
         op = sym
     expr = term(lexer, symtab)
     if op:
         expr = UnaryExpression(operand=expr, symtab=symtab)
-    while new_sym in ["plus", "minus"]:
+    while new_sym in [Token.PLUS, Token.MINUS]:
         getsym(lexer)
         op = sym
         expr2 = term(lexer, symtab)
@@ -115,7 +113,7 @@ def expression(lexer: Lexer, symtab: SymbolTable) -> Expression:
 
 @debug_logger
 def condition(lexer: Lexer, symtab: SymbolTable):
-    if accept(lexer, "oddsym"):
+    if accept(lexer, Token.ODD):
         return UnaryExpression(operand=expression(lexer, symtab), symtab=symtab)
     else:
         expr = expression(lexer, symtab)
@@ -135,39 +133,39 @@ def condition(lexer: Lexer, symtab: SymbolTable):
 
 @debug_logger
 def statement(lexer: Lexer, symtab: SymbolTable) -> Optional[Statement]:
-    if accept(lexer, "ident"):
+    if accept(lexer, Token.IDENT):
         target = symtab.find(value)
-        expect(lexer, "becomes")
+        expect(lexer, Token.BECOMES)
         expr = expression(lexer, symtab)
         return AssignStatement(target=target, expr=expr, symtab=symtab)
-    elif accept(lexer, "callsym"):
-        expect(lexer, "ident")
+    elif accept(lexer, Token.CALL):
+        expect(lexer, Token.IDENT)
         return CallStatement(
             call_expr=CallExpression(
                 function=symtab.find(value), symtab=symtab
             ),
             symtab=symtab,
         )
-    elif accept(lexer, "beginsym"):
+    elif accept(lexer, Token.BEGIN):
         statement_list = StatementList(symtab=symtab)
         statement_list.append(statement(lexer, symtab))
-        while accept(lexer, "semicolon") == 0:
+        while accept(lexer, Token.SEMICOLON) == 0:
             statement_list.append(statement(symtab))
-        expect(lexer, "endsym")
+        expect(lexer, Token.END)
         statement_list.print_content()
         return statement_list
-    elif accept(lexer, "ifsym"):
+    elif accept(lexer, Token.IF):
         cond = condition(lexer, symtab)
-        expect(lexer, "thensym")
+        expect(lexer, Token.THEN)
         then = statement(lexer, symtab)
         return IfStatement(cond=cond, thenpart=then, symtab=symtab)
-    elif accept(lexer, "whilesym"):
+    elif accept(lexer, Token.WHILE):
         cond = condition(lexer, symtab)
-        expect(lexer, "dosym")
+        expect(lexer, Token.DO)
         body = statement(lexer, symtab)
         return WhileStatement(cond=cond, body=body, symtab=symtab)
-    elif accept(lexer, "print"):
-        expect(lexer, "ident")
+    elif accept(lexer, Token.PRINT):
+        expect(lexer, Token.IDENT)
         return PrintStatement(symbol=symtab.find(value), symtab=symtab)
 
     return None
@@ -177,33 +175,33 @@ def statement(lexer: Lexer, symtab: SymbolTable) -> Optional[Statement]:
 def block(lexer: Lexer, symtab: SymbolTable) -> Block:
     local_vars = SymbolTable()
     defs = DefinitionList()
-    if accept(lexer, "constsym"):
-        expect(lexer, "ident")
+    if accept(lexer, Token.CONST):
+        expect(lexer, Token.IDENT)
         name = value
-        expect(lexer, "eql")
-        expect(lexer, "number")
+        expect(lexer, Token.EQL)
+        expect(lexer, Token.NUMBER)
         local_vars.append(Symbol(name, standard_types["int"]))  # , value)
-        while accept(lexer, "comma"):
-            expect(lexer, "ident")
+        while accept(lexer, Token.COMMA):
+            expect(lexer, Token.IDENT)
             name = value
-            expect(lexer, "eql")
-            expect(lexer, "number")
+            expect(lexer, Token.EQL)
+            expect(lexer, Token.NUMBER)
             local_vars.append(Symbol(name, standard_types["int"]))  # , value)
-        expect(lexer, "semicolon")
-    if accept(lexer, "varsym"):
-        expect(lexer, "ident")
+        expect(lexer, Token.SEMICOLON)
+    if accept(lexer, Token.VAR):
+        expect(lexer, Token.IDENT)
         local_vars.append(Symbol(value, standard_types["int"]))
-        while accept(lexer, "comma"):
-            expect(lexer, "ident")
+        while accept(lexer, Token.COMMA):
+            expect(lexer, Token.IDENT)
             local_vars.append(Symbol(value, standard_types["int"]))
-        expect(lexer, "semicolon")
-    while accept(lexer, "procsym"):
-        expect(lexer, "ident")
+        expect(lexer, Token.SEMICOLON)
+    while accept(lexer, Token.PROCEDURE):
+        expect(lexer, Token.IDENT)
         fname = value
-        expect(lexer, "semicolon")
+        expect(lexer, Token.SEMICOLON)
         local_vars.append(Symbol(fname, standard_types["function"]))
         fbody = block(lexer, local_vars)
-        expect(lexer, "semicolon")
+        expect(lexer, Token.SEMICOLON)
         defs.append(
             FunctionDefinition(symbol=local_vars.find(fname), body=fbody)
         )
@@ -219,5 +217,5 @@ def parse_program(lexer: Lexer) -> Block:
     global_symtab = SymbolTable()
     getsym(lexer)
     the_program = block(lexer, global_symtab)
-    expect(lexer, "period")
+    expect(lexer, Token.PERIOD)
     return the_program
