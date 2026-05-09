@@ -51,24 +51,6 @@ class Lexer(Iterator[tuple[str, str]]):
             if word:  # skip empty strings defensively
                 yield self.token(word), word
 
-    @staticmethod
-    def negate_operator(op: str) -> Optional[str]:
-        match op:
-            case "eql":
-                return "neq"
-            case "neq":
-                return "eql"
-            case "lss":
-                return "geq"
-            case "leq":
-                return "gtr"
-            case "gtr":
-                return "leq"
-            case "geq":
-                return "lss"
-            case _:
-                return None
-
     @classmethod
     def token(cls, word: str) -> str:
         for s, values in cls.symbols.items():

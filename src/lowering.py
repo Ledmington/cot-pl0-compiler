@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from block import Block
 from constant import Constant
@@ -67,7 +68,7 @@ def lower(stmt: WhileStatement) -> bool:
     stmt.symtab.append(reg)
     branch_out = BranchStatement(
         stmt.parent,
-        Lexer.negate_operator(stmt.cond.operator),
+        negate_operator(stmt.cond.operator),
         reg,
         out_label,
         stmt.symtab,
@@ -82,6 +83,24 @@ def lower(stmt: WhileStatement) -> bool:
         children=[stmt.cond, branch_out, stmt.body, branch_back, end],
     )
     return stmt.parent.replace(stmt, slist)
+
+
+def negate_operator(op: str) -> Optional[str]:
+    match op:
+        case "eql":
+            return "neq"
+        case "neq":
+            return "eql"
+        case "lss":
+            return "geq"
+        case "leq":
+            return "gtr"
+        case "gtr":
+            return "leq"
+        case "geq":
+            return "lss"
+        case _:
+            return None
 
 
 def lower(stmt: AssignStatement) -> bool:
