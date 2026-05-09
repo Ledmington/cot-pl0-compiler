@@ -6,7 +6,20 @@ These functions expose high level interfaces (passes) for actions that can be ap
 from pathlib import Path
 from typing import Any, Callable
 
-from ir2 import Block, Statement
+from block import Block
+from lexer import Lexer
+from st import getRegister, standard_types
+from statements import (
+    AssignStatement,
+    BranchStatement,
+    EmptyStatement,
+    IfStatement,
+    Statement,
+    StatementList,
+    StoreStatement,
+    UnaryStatement,
+    WhileStatement,
+)
 
 
 def get_node_list(root: Block):
@@ -50,16 +63,73 @@ def get_symbol_tables(root):
     return node_list
 
 
-def lowering(node):
+def lowering(node) -> None:
     """Lowering action for a node
     (all high level nodes can be lowered to lower-level representation"""
     try:
-        check = node.lower()
         logging.debug("Lowering {} {}".format(type(node), id(node)))
+        check = lower(node)
         if not check:
             logging.debug("Failed!")
     except Exception as e:
         logging.debug("Cannot lower {} {}".format(type(node), e))
+
+
+def lower(stmt: WhileStatement) -> bool:
+    out_label = standard_types["label"]()
+    back_label = standard_types["label"]()
+    end = EmptyStatement()
+    end.set_label(out_label)
+    reg = getRegister()
+    stmt.symtab.append(reg)
+    branch_out = BranchStatement(
+        stmt.parent,
+        Lexer.negate_operator(stmt.cond.operator),
+        reg,
+        out_label,
+        stmt.symtab,
+    )
+    branch_back = BranchStatement(
+        stmt.parent, None, None, back_label, stmt.symtab
+    )
+    stmt.cond.set_label(back_label)
+    logging.debug("{} attached to {}".format(stmt.cond.get_label(), stmt.cond))
+    slist = StatementList(
+        stmt.parent,
+        children=[stmt.cond, branch_out, stmt.body, branch_back, end],
+    )
+    return stmt.parent.replace(stmt, slist)
+
+
+def lower(stmt: AssignStatement) -> bool:
+    node = StoreStatement(stmt.parent, stmt.target, stmt.expr.dest, stmt.symtab)
+    slist = StatementList(stmt.parent, children=[stmt.expr, node])
+    return stmt.parent.replace(stmt, slist)
+
+
+def lower(stmt: IfStatement) -> bool:
+    if stmt.elsepart:
+        raise Exception("Lowering of if-else not implemented yet!")
+    out_label = standard_types["label"]()
+    end = EmptyStatement()
+    end.set_label(out_label)
+    reg = getRegister()
+    stmt.symtab.append(reg)
+    ncond = UnaryStatement(stmt.parent, "-", reg, stmt.cond.dest, stmt.symtab)
+    branch = BranchStatement(
+        stmt.parent, stmt.cond.operator, ncond.dest, out_label, stmt.symtab
+    )
+    slist = StatementList(
+        stmt.parent,
+        children=[
+            stmt.cond,
+            ncond,
+            branch,
+            # thenpart,
+            end,
+        ],
+    )
+    return stmt.parent.replace(stmt, slist)
 
 
 def flattening(node):

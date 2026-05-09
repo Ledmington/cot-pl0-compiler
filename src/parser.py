@@ -1,6 +1,8 @@
 import logging
 from typing import Optional
 
+from statement import Statement
+
 from block import Block
 from constant import Constant
 from ir2 import (
@@ -14,7 +16,6 @@ from ir2 import (
 from lexer import Lexer
 from logger import logger
 from st import Symbol, SymbolTable, standard_types
-from statement import Statement
 from statements import (
     AssignStatement,
     CallStatement,

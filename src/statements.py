@@ -3,8 +3,7 @@ from typing import Optional
 
 from definitions import FunctionDefinition
 from ir_node import IRNode
-from lexer import Lexer
-from st import SymbolTable, getRegister, standard_types
+from st import SymbolTable
 
 
 class Statement(IRNode):
@@ -68,32 +67,6 @@ class IfStatement(Statement):
         )
         self.mapping = ["cond", "thenpart", "elsepart"]
 
-    def lower(self) -> bool:
-        if self.elsepart:
-            raise Exception("Lowering of if-else not implemented yet!")
-        out_label = standard_types["label"]()
-        end = EmptyStatement()
-        end.set_label(out_label)
-        reg = getRegister()
-        self.symtab.append(reg)
-        ncond = UnaryStatement(
-            self.parent, "-", reg, self.cond.dest, self.symtab
-        )
-        branch = BranchStatement(
-            self.parent, self.cond.operator, ncond.dest, out_label, self.symtab
-        )
-        slist = StatementList(
-            self.parent,
-            children=[
-                self.cond,
-                ncond,
-                branch,
-                # thenpart,
-                end,
-            ],
-        )
-        return self.parent.replace(self, slist)
-
 
 class WhileStatement(Statement):
     """While loop statement node"""
@@ -108,33 +81,6 @@ class WhileStatement(Statement):
         super(WhileStatement, self).__init__(parent, symtab, cond, body)
         self.mapping = ["cond", "body"]
 
-    def lower(self) -> bool:
-        out_label = standard_types["label"]()
-        back_label = standard_types["label"]()
-        end = EmptyStatement()
-        end.set_label(out_label)
-        reg = getRegister()
-        self.symtab.append(reg)
-        branch_out = BranchStatement(
-            self.parent,
-            Lexer.negate_operator(self.cond.operator),
-            reg,
-            out_label,
-            self.symtab,
-        )
-        branch_back = BranchStatement(
-            self.parent, None, None, back_label, self.symtab
-        )
-        self.cond.set_label(back_label)
-        logging.debug(
-            "{} attached to {}".format(self.cond.get_label(), self.cond)
-        )
-        slist = StatementList(
-            self.parent,
-            children=[self.cond, branch_out, self.body, branch_back, end],
-        )
-        return self.parent.replace(self, slist)
-
 
 class AssignStatement(Statement):
     """Assignment statement node (writes to a variable the value of an expression)"""
@@ -148,13 +94,6 @@ class AssignStatement(Statement):
     ):
         super(AssignStatement, self).__init__(parent, symtab, target, expr)
         self.mapping = ["target", "expr"]
-
-    def lower(self) -> bool:
-        node = StoreStatement(
-            self.parent, self.target, self.expr.dest, self.symtab
-        )
-        slist = StatementList(self.parent, children=[self.expr, node])
-        return self.parent.replace(self, slist)
 
 
 # LOW LEVEL REPRESENTATION
