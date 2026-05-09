@@ -5,6 +5,8 @@ from definitions import FunctionDefinition
 from ir_node import IRNode
 from symbol_table import SymbolTable
 
+logger = logging.getLogger("statements")
+
 
 class Statement(IRNode):
     """Statement base node; can have a label"""
@@ -228,7 +230,7 @@ class StatementList(Statement):
         symtab: Optional[SymbolTable] = None,
     ):
         super().__init__(parent, symtab, children)
-        logging.debug("StatList : new {}".format(id(self)))
+        logger.debug("StatList : new {}".format(id(self)))
         self.parent = parent
         if children:
             self.children = children[:]
@@ -240,7 +242,7 @@ class StatementList(Statement):
 
     def insert(self, index, elem):
         elem.parent = self
-        logging.debug(
+        logger.debug(
             "StatList: inserting {} of type {} into {}".format(
                 id(elem), type(elem), id(self)
             )
@@ -249,7 +251,7 @@ class StatementList(Statement):
 
     def append(self, elem):
         elem.parent = self
-        logging.debug(
+        logger.debug(
             "StatList: appending {} of type {} to {}".format(
                 id(elem), type(elem), id(self)
             )
@@ -264,10 +266,10 @@ class StatementList(Statement):
         return None
 
     def print_content(self):
-        logging.debug("StatList {} : [".format(id(self)))
+        logger.debug("StatList {} : [".format(id(self)))
         for n in self.children:
-            logging.debug("{} ".format(id(n)))
-        logging.debug("]")
+            logger.debug("{} ".format(id(n)))
+        logger.debug("]")
 
     def set_label(self, label):
         self.children[0].set_label(label)
