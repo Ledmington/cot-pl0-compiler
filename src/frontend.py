@@ -8,12 +8,12 @@ from pathlib import Path
 import arm_ir
 from cfg import CFG
 from lexer import Lexer
+from lowering import lowering
 from parser import program
 from support import (
     codegeneration,
     flattening,
     layout,
-    lowering,
     print_dotty,
 )
 
