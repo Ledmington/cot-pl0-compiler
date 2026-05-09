@@ -214,7 +214,7 @@ def block(lexer: Lexer, symtab: SymbolTable) -> Block:
 
 
 @debug_logger
-def program(lexer: Lexer) -> Block:
+def parse_program(lexer: Lexer) -> Block:
     """Axiom"""
     global_symtab = SymbolTable()
     getsym(lexer)

@@ -3,6 +3,7 @@ Includes cfg construction and liveness analysis."""
 
 import logging
 from functools import reduce
+from itertools import permutations
 from pathlib import Path
 
 from definitions import FunctionDefinition
@@ -272,14 +273,17 @@ class CFG(list):
                     )
             f.write("}\n")
 
-    def print_liveness(self):
-        print("Liveness sets")
+    # TODO: find better name
+    def print_liveness(self) -> str:
+        s = ""
+        s += "Liveness sets\n"
         for bb in self:
-            print(bb)
-            print("gen:", bb.gen)
-            print("kill:", bb.kill)
-            print("live_in:", bb.live_in)
-            print("live_out:", bb.live_out)
+            s += bb.__repr__() + "\n"
+            s += "gen: " + bb.gen + "\n"
+            s += "kill: " + bb.kill + "\n"
+            s += "live_in: " + bb.live_in + "\n"
+            s += "live_out: " + bb.live_out + "\n"
+        return s
 
     def find_target_bb(self, label):
         """Return the BB that contains a given label;
@@ -300,9 +304,7 @@ class CFG(list):
                 out.append(bb.liveness_iteration())
         return
 
-    def reg_alloc(self, n=8):
-        from itertools import permutations
-
+    def reg_alloc(self, n):
         ig = []
         regs = []
 
@@ -315,7 +317,7 @@ class CFG(list):
         regs = set(regs)
         logger.debug("Registers: {}".format(regs))
         logger.debug("Interference Graph: {}".format(ig))
-        registers = set(range(8))
+        registers = set(range(n))
 
         def getInterf(r, ig):
             return set(
