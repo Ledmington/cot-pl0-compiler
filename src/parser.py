@@ -4,7 +4,7 @@ from typing import Optional
 from block import Block
 from constant import Constant
 from debug_logger import debug_logger
-from definitions import DefinitionList, FunctionDefinition
+from definitions import FunctionDefinition
 from ir2 import (
     BinaryExpression,
     CallExpression,
@@ -174,7 +174,7 @@ def statement(lexer: Lexer, symtab: SymbolTable) -> Optional[Statement]:
 @debug_logger
 def block(lexer: Lexer, symtab: SymbolTable) -> Block:
     local_vars = SymbolTable()
-    defs = DefinitionList()
+    defs = []
     if accept(lexer, Token.CONST):
         expect(lexer, Token.IDENT)
         name = value

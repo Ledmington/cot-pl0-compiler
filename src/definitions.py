@@ -23,16 +23,3 @@ class FunctionDefinition(Definition):
         return self.body.global_symtab.exclude(
             [standard_types["function"], standard_types["label"]]
         )
-
-
-class DefinitionList(IRNode):
-    """List of definitions"""
-
-    def __init__(self, parent: Optional[IRNode] = None, children=None):
-        if children is None:
-            children = []
-        super().__init__(parent, None, *children)
-
-    def append(self, elem: IRNode):
-        elem.parent = self
-        self.children.append(elem)
