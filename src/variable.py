@@ -15,3 +15,14 @@ class Variable(IRNode):
     ):
         super(Variable, self).__init__(parent, symtab, var)
         self.mapping = ["symbol"]
+
+    def to_string(self, indent: str, indent_level: int) -> str:
+        return (
+            "Variable { "
+            + (
+                self.symbol.to_string(indent, indent_level)
+                if self.symbol
+                else "None"
+            )
+            + " }"
+        )

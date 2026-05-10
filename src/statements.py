@@ -80,7 +80,7 @@ class WhileStatement(Statement):
         self.mapping = ["cond", "body"]
 
 
-class AssignStatement(Statement):
+class AssignmentStatement(Statement):
     """Assignment statement node (writes to a variable the value of an expression)"""
 
     def __init__(
@@ -90,8 +90,39 @@ class AssignStatement(Statement):
         expr=None,
         symtab: Optional[SymbolTable] = None,
     ):
-        super(AssignStatement, self).__init__(parent, symtab, target, expr)
+        super(AssignmentStatement, self).__init__(parent, symtab, target, expr)
         self.mapping = ["target", "expr"]
+
+    # why?
+    def __iter__(self):
+        yield self
+
+    def __repr__(self) -> str:
+        return self.to_string(indent="  ", indent_level=0)
+
+    def to_string(self, indent: str, indent_level: int) -> str:
+        s = ""
+        s += indent * indent_level + "AssignmentStatement {\n"
+        indent_level += 1
+        s += (
+            indent * indent_level
+            + "target: "
+            + (
+                self.target.to_string(indent, indent_level + 1)
+                if self.target
+                else "None"
+            )
+            + "\n"
+        )
+        s += (
+            indent * indent_level
+            + "expr: "
+            + self.expr.to_string(indent, indent_level + 1)
+            + "\n"
+        )
+        indent_level -= 1
+        s += indent * indent_level + "}"
+        return s
 
 
 # LOW LEVEL REPRESENTATION
@@ -273,3 +304,7 @@ class StatementList(Statement):
 
     def set_label(self, label):
         self.children[0].set_label(label)
+
+    def __iter__(self):
+        for stmt in self.children:
+            yield stmt

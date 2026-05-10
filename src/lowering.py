@@ -5,9 +5,8 @@ from block import Block
 from constant import Constant
 from definitions import FunctionDefinition
 from ir2 import BinaryExpression, CallExpression, UnaryExpression
-from lexer import Lexer
 from statements import (
-    AssignStatement,
+    AssignmentStatement,
     BinaryStatement,
     BranchLinkStatement,
     BranchStatement,
@@ -103,7 +102,7 @@ def negate_operator(op: str) -> Optional[str]:
             return None
 
 
-def lower(stmt: AssignStatement) -> bool:
+def lower(stmt: AssignmentStatement) -> bool:
     node = StoreStatement(stmt.parent, stmt.target, stmt.expr.dest, stmt.symtab)
     slist = StatementList(stmt.parent, children=[stmt.expr, node])
     return stmt.parent.replace(stmt, slist)

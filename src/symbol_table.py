@@ -84,7 +84,10 @@ class Symbol(object):
         self.register = None
         self.offset = 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        return self.to_string(indent="  ", indent_level=0)
+
+    def to_string(self, indent: str, indent_level: int) -> str:
         res = self.stype.name + " " + self.name
         res += (" " + repr(self.value) + " const" if self.value else "") + " "
         res += self.storage_class if self.storage_class else ""
@@ -116,18 +119,19 @@ class SymbolTable(list):
         return None
 
     def __repr__(self) -> str:
-        res = "SymbolTable:\n"
+        res = "SymbolTable: {\n"
         for s in self:
             res += repr(s) + "\n"
+        res += "}\n"
         return res
 
     def exclude(self, barred_types: list[Type]) -> list[Type]:
         return [symb for symb in self if symb.stype not in barred_types]
 
-    def setParent(self, parent: SymbolTable) -> None:
+    def set_parent(self, parent: SymbolTable) -> None:
         self.parent = parent
 
-    def getParent(self) -> Optional[SymbolTable]:
+    def get_parent(self) -> Optional[SymbolTable]:
         try:
             return self.parent
         except AttributeError:

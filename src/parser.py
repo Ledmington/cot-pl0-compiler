@@ -13,7 +13,7 @@ from ir2 import (
 )
 from lexer import Lexer, Token
 from statements import (
-    AssignStatement,
+    AssignmentStatement,
     CallStatement,
     IfStatement,
     PrintStatement,
@@ -33,7 +33,7 @@ new_sym = None  # next symbol
 new_value = None  # next value
 
 
-def getsym(lexer: Lexer) -> int:
+def get_symbol(lexer: Lexer) -> int:
     """Update sym"""
     global new_sym
     global new_value
@@ -45,7 +45,7 @@ def getsym(lexer: Lexer) -> int:
         new_sym, new_value = next(lexer)
     except StopIteration:
         return 2
-    logger.debug("getsym: {} {}".format(new_sym, new_value))
+    logger.debug("get_symbol: {} {}".format(new_sym, new_value))
     return 1
 
 
@@ -55,7 +55,7 @@ def error(msg: str) -> None:
 
 def accept(lexer: Lexer, t: Token) -> int:
     logger.debug("accepting {} == {}".format(t, new_sym))
-    return getsym(lexer) if new_sym == t else 0
+    return get_symbol(lexer) if new_sym == t else 0
 
 
 def expect(lexer: Lexer, t: Token) -> int:
@@ -78,7 +78,7 @@ def factor(lexer: Lexer, symtab: SymbolTable):
         return expr
     else:
         error("factor: syntax error")
-        getsym(lexer)
+        get_symbol(lexer)
         return None
 
 
@@ -87,7 +87,7 @@ def term(lexer: Lexer, symtab: SymbolTable):
     op = None
     expr = factor(lexer, symtab)
     while new_sym in [Token.TIMES, Token.SLASH]:
-        getsym(lexer)
+        get_symbol(lexer)
         op = sym
         expr2 = factor(lexer, symtab)
         expr = BinaryExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
@@ -98,13 +98,13 @@ def term(lexer: Lexer, symtab: SymbolTable):
 def expression(lexer: Lexer, symtab: SymbolTable) -> Expression:
     op = None
     if new_sym in [Token.PLUS, Token.MINUS]:
-        getsym(lexer)
+        get_symbol(lexer)
         op = sym
     expr = term(lexer, symtab)
     if op:
         expr = UnaryExpression(operand=expr, symtab=symtab)
     while new_sym in [Token.PLUS, Token.MINUS]:
-        getsym(lexer)
+        get_symbol(lexer)
         op = sym
         expr2 = term(lexer, symtab)
         expr = BinaryExpression(operator=op, op1=expr, op2=expr2, symtab=symtab)
@@ -118,7 +118,7 @@ def condition(lexer: Lexer, symtab: SymbolTable):
     else:
         expr = expression(lexer, symtab)
         if new_sym in ["eql", "neq", "lss", "leq", "gtr", "geq"]:
-            getsym(lexer)
+            get_symbol(lexer)
             logger.debug("condition operator {} {}".format(sym, new_sym))
             op = sym
             expr2 = expression(lexer, symtab)
@@ -127,7 +127,7 @@ def condition(lexer: Lexer, symtab: SymbolTable):
             )
         else:
             error("condition: invalid operator")
-            getsym(lexer)
+            get_symbol(lexer)
             return None
 
 
@@ -137,7 +137,7 @@ def statement(lexer: Lexer, symtab: SymbolTable) -> Optional[Statement]:
         target = symtab.find(value)
         expect(lexer, Token.BECOMES)
         expr = expression(lexer, symtab)
-        return AssignStatement(target=target, expr=expr, symtab=symtab)
+        return AssignmentStatement(target=target, expr=expr, symtab=symtab)
     elif accept(lexer, Token.CALL):
         expect(lexer, Token.IDENT)
         return CallStatement(
@@ -215,7 +215,7 @@ def block(lexer: Lexer, symtab: SymbolTable) -> Block:
 def parse_program(lexer: Lexer) -> Block:
     """Axiom"""
     global_symtab = SymbolTable()
-    getsym(lexer)
+    get_symbol(lexer)
     the_program = block(lexer, global_symtab)
     expect(lexer, Token.PERIOD)
     return the_program

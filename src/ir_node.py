@@ -25,7 +25,10 @@ class IRNode(object):
             except AttributeError:
                 pass
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        return self.to_string(indent="  ", indent_level=0)
+
+    def to_string(self, indent: str, indent_level: int) -> str:
         line = ""
         try:
             line = self.label.codegen() + " : "
