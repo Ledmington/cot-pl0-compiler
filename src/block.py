@@ -27,8 +27,13 @@ class Block(Statement):
         """Redefine navigate to force main to be generated before other functions"""
         if not post:
             action(self)
+
         self.body.navigate(action, post)
-        self.defs.navigate(action, post)
+
+        for definition in self.defs:
+            definition.navigate(action, post)
+        # self.defs.navigate(action, post)
+
         if post:
             action(self)
 

@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Optional
+from typing import Callable, Optional, Any
 
 from symbol_table import SymbolTable
 
 
 class IRNode(object):
     """Base class for the Intermediate Representation, offers printing and tree traversal facilities"""
+
+    parent: Optional[IRNode]
+    symtab: Optional[SymbolTable]
+    mapping: list[Any]
+    children: list[IRNode]
 
     def __init__(
         self,
