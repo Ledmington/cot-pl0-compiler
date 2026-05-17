@@ -93,6 +93,9 @@ class Symbol(object):
         res += self.storage_class if self.storage_class else ""
         return res
 
+    def codegen(self) -> str:
+        return self.stype.name + " " + self.name
+
 
 class LabelSymbol(Symbol):
     def __repr__(self) -> str:

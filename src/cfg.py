@@ -5,8 +5,10 @@ import logging
 from functools import reduce
 from itertools import permutations
 from pathlib import Path
+from typing import Any
 
 from definitions import FunctionDefinition
+from ir_node import IRNode
 from statements import BranchStatement, CallStatement, StatementList
 from support import get_node_list
 
@@ -40,7 +42,10 @@ class BasicBlock(object):
         self.kill = set([])  # assigned
         self.gen = set([])  # use before assign
         for i in instrs:
-            uses = set(i.collect_uses()) - {None}
+            if not isinstance(i, IRNode):
+                continue
+
+            uses: set[Any] = set(i.collect_uses()) - {None}
             uses.difference_update(self.kill)
             self.gen.update(uses)
             try:
@@ -49,21 +54,27 @@ class BasicBlock(object):
                 pass
 
         # Total number of registers needed
-        self.total_vars_used = len(self.gen.union(self.kill))
+        self.total_vars_used: int = len(self.gen.union(self.kill))
 
-        live_in = [self.live_out]
+        live_in: list[set[Any]] = [self.live_out]
         for i in reversed(self.instrs):
+            if not isinstance(i, IRNode):
+                continue
+
             try:
                 kill = {i.dest}
             except Exception:
                 kill = set([])
             gen = set(i.collect_uses()) - kill - {None}
             live_in.append(gen.union(live_in[-1] - kill))
-        live_in.pop(-1)
-        for i in self.instrs:
-            i.live_out = live_in.pop(-1)
 
-    def __repr__(self):
+        live_in.pop(-1)
+
+        for i in self.instrs:
+            if live_in:
+                i.live_out = live_in.pop(-1)
+
+    def __repr__(self) -> str:
         """Print in graphviz dot format"""
         instrs = repr(self.labels) + "\\n" if len(self.labels) else ""
         """live_in=[self.live_out]
@@ -75,9 +86,10 @@ class BasicBlock(object):
         live_in.pop(-1)"""
         for i in self.instrs:
             try:
-                text = i.codegen()
+                text: str = i.codegen()
             except ValueError:
-                text = type(i)
+                text: str = str(type(i))
+            print(i)
             instrs += repr(text) + "\n { " + repr(i.live_out) + " }\n"
         res = (
             repr(id(self))

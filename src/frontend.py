@@ -32,30 +32,30 @@ def run(source: str, root_dir: Path = Path(os.getcwd())) -> None:
     program = parse_program(the_lexer)
     logger.debug("Parsing complete")
 
-    logger.debug("Parsed program: {}".format(program))
+    logger.debug("Parsed program: %s", program)
 
     logger.debug("Start lowering")
     program.navigate(lowering, post=True)
     logger.debug("End lowering")
 
-    logger.debug("Program after lowering: {}".format(program))
+    logger.debug("Program after lowering: %s", program)
 
     logger.debug("Start flattening")
     program.navigate(flattening, post=True)
     logger.debug("End flattening")
 
-    logger.debug("Program after flattening: {}".format(program))
+    logger.debug("Program after flattening: %s", program)
 
     logger.debug("Start data layout")
     program.navigate(layout, post=True)
     logger.debug("End data layout")
 
-    logger.debug("Program after data layout: {}".format(program))
+    logger.debug("Program after data layout: %s", program)
 
     dotty_file = root_dir / "log.dot"
-    logger.debug("Start printing dotty at '{}'", dotty_file)
+    logger.debug("Start printing dotty at '%s'", str(dotty_file))
     print_dotty(program, dotty_file)
-    logger.debug("End printing dotty at '{}'", dotty_file)
+    logger.debug("End printing dotty at '%s'", str(dotty_file))
 
     cfg = CFG(program)
 

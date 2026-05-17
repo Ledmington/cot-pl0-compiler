@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Callable, Optional, Any
 
+from printer import Printer
 from symbol_table import SymbolTable
 
 
@@ -31,18 +32,20 @@ class IRNode(object):
                 pass
 
     def __repr__(self) -> str:
-        return self.to_string(indent="  ", indent_level=0)
+        return self.to_string(Printer())
 
-    def to_string(self, indent: str, indent_level: int) -> str:
-        line = ""
+    def to_string(self, printer: Printer) -> str:
         try:
-            line = self.label.codegen() + " : "
+            printer += self.label.codegen() + " : "
         except Exception:
             pass
-        lines = [line + repr(type(self)) + " " + repr(id(self)) + " {"]
+
+        printer += repr(type(self)) + " " + repr(id(self)) + " {"
+
         for c in self.children:
-            lines += "{}".format(repr(c)).split("\n")
-        return "\n\t".join(lines) + "\n}"
+            printer += str(repr(c)) + "\n"
+
+        return printer.__repr__()
 
     def __getattr__(self, attr):
         return self.children[self.mapping.index(attr)]
@@ -75,7 +78,7 @@ class IRNode(object):
             logging.debug("Exception while replacing {}".format(e))
             return False
 
-    def collect_uses(self):
+    def collect_uses(self) -> list[Any]:
         uses = []
 
         try:
