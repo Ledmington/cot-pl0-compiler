@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
+from printer import Printer
+
 logger = logging.getLogger("symtab")
 
 basetypes = ["Int", "Float", "Label", "Struct", "Function"]
@@ -85,13 +87,15 @@ class Symbol(object):
         self.offset = 0
 
     def __repr__(self) -> str:
-        return self.to_string(indent="  ", indent_level=0)
+        return self.to_string()
 
-    def to_string(self, indent: str, indent_level: int) -> str:
-        res = self.stype.name + " " + self.name
-        res += (" " + repr(self.value) + " const" if self.value else "") + " "
-        res += self.storage_class if self.storage_class else ""
-        return res
+    def to_string(self, printer: Printer = Printer()) -> str:
+        printer += self.stype.name + " " + self.name
+        printer += (
+            " " + repr(self.value) + " const" if self.value else ""
+        ) + " "
+        printer += self.storage_class if self.storage_class else ""
+        return printer.__repr__()
 
     def codegen(self) -> str:
         return self.stype.name + " " + self.name

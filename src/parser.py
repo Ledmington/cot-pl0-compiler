@@ -152,7 +152,7 @@ def statement(lexer: Lexer, symtab: SymbolTable) -> Optional[Statement]:
         while accept(lexer, Token.SEMICOLON) == 0:
             statement_list.append(statement(symtab))
         expect(lexer, Token.END)
-        statement_list.print_content()
+        logger.debug(statement_list)
         return statement_list
     elif accept(lexer, Token.IF):
         cond = condition(lexer, symtab)

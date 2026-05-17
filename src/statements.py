@@ -3,6 +3,7 @@ from typing import Optional
 
 from definitions import FunctionDefinition
 from ir_node import IRNode
+from printer import Printer
 from symbol_table import SymbolTable
 
 logger = logging.getLogger("statements")
@@ -296,11 +297,17 @@ class StatementList(Statement):
             return self.children[-1].operator
         return None
 
-    def print_content(self):
-        logger.debug("StatList {} : [".format(id(self)))
-        for n in self.children:
-            logger.debug("{} ".format(id(n)))
-        logger.debug("]")
+    def __repr__(self) -> str:
+        return self.to_string()
+
+    def to_string(self, printer: Printer = Printer()) -> str:
+        printer += "StatementList {\n"
+        printer.indent(1)
+        for stmt in self.children:
+            printer += stmt.to_string(printer)
+        printer.indent(-1)
+        printer += "}"
+        return printer.__repr__()
 
     def set_label(self, label):
         self.children[0].set_label(label)

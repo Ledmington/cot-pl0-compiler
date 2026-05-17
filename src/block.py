@@ -2,6 +2,7 @@ from typing import Callable, Optional
 
 from definitions import Definition
 from ir_node import IRNode
+from printer import Printer
 from statements import Statement, StatementList
 from symbol_table import SymbolTable
 
@@ -37,18 +38,21 @@ class Block(Statement):
         if post:
             action(self)
 
-    def to_string(self, indent: str, indent_level: int) -> str:
-        s = ""
-        s += "Block {\n"
-        indent_level += 1
-        s += indent * indent_level + "definitions: {\n"
+    def to_string(self, printer: Printer = Printer()) -> str:
+        printer += "Block {\n"
+        printer.indent(1)
+        printer += "definitions: {\n"
+        printer.indent(1)
         for definition in self.defs:
-            s += definition.to_string(indent, indent_level + 1) + "\n"
-        s += indent * indent_level + "}\n"
-        s += indent * indent_level + "body: {\n"
+            printer += definition.to_string() + "\n"
+        printer.indent(-1)
+        printer += "}\n"
+        printer += "body: {\n"
+        printer.indent(1)
         for x in self.body:
-            s += x.to_string(indent, indent_level + 1) + "\n"
-        s += indent * indent_level + "}\n"
-        indent_level -= 1
-        s += indent * indent_level + "}"
-        return s
+            printer += x.to_string() + "\n"
+        printer.indent(-1)
+        printer += "}\n"
+        printer.indent(-1)
+        printer += "}"
+        return printer.__repr__()

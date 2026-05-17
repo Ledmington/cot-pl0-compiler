@@ -18,7 +18,7 @@ class Printer(object):
     def __iadd__(self, msg: str) -> Printer:
         if self._pending_newline:
             self._buffer += self._indent * self._indent_level
-        self._pending_newline = msg[-1] == "\n"
+        self._pending_newline = len(msg) > 0 and msg[-1] == "\n"
         for i, c in enumerate(msg):
             self._buffer += c
             # adding indentation for every newline except the last one

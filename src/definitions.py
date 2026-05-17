@@ -1,6 +1,7 @@
 from typing import Optional
 
 from ir_node import IRNode
+from printer import Printer
 from symbol_table import standard_types
 
 
@@ -10,6 +11,15 @@ class Definition(IRNode):
     def __init__(self, parent: Optional[IRNode] = None, symbol=None, body=None):
         super().__init__(parent, None, symbol, body)
         self.mapping = ["symbol"]
+
+    def to_string(self, printer: Printer = Printer()) -> str:
+        printer += "Definition {\n"
+        printer.indent(1)
+        printer += "symbol: " + self.symbol.to_string()
+        printer += "body: " + self.body.to_string()
+        printer.indent(-1)
+        printer += "}"
+        return printer.__repr__()
 
 
 class FunctionDefinition(Definition):
@@ -24,22 +34,11 @@ class FunctionDefinition(Definition):
             [standard_types["function"], standard_types["label"]]
         )
 
-    def to_string(self, indent: str, indent_level: int) -> str:
-        s = ""
-        s += indent * indent_level + "FunctionDefinition {\n"
-        indent_level += 1
-        s += (
-            indent * indent_level
-            + "symbol: "
-            + self.symbol.to_string(indent, indent_level + 1)
-            + "\n"
-        )
-        s += (
-            indent * indent_level
-            + "body: "
-            + self.body.to_string(indent, indent_level + 1)
-            + "\n"
-        )
-        indent_level -= 1
-        s += indent * indent_level + "}"
-        return s
+    def to_string(self, printer: Printer = Printer()) -> str:
+        printer += "FunctionDefinition {"
+        printer.indent(1)
+        printer += "symbol: " + self.symbol.to_string()
+        printer += "body: " + self.body.to_string()
+        printer.indent(-1)
+        printer += "}"
+        return printer.__repr__()
