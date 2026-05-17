@@ -20,5 +20,5 @@ qemu--aarch64 ./a.out
 uv run ruff format .
 uv run ruff check --select I .
 uv run ty check
-uv run pytest
+uv run pytest --cov --cov-report=html
 ```
