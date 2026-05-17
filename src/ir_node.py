@@ -32,18 +32,22 @@ class IRNode(object):
                 pass
 
     def __repr__(self) -> str:
-        return self.to_string(Printer())
+        return self.to_string()
 
-    def to_string(self, printer: Printer) -> str:
+    def to_string(self, printer: Printer = Printer()) -> str:
         try:
             printer += self.label.codegen() + " : "
         except Exception:
             pass
 
-        printer += repr(type(self)) + " " + repr(id(self)) + " {"
+        printer += repr(type(self)) + " " + repr(id(self)) + " {\n"
+        printer.indent(1)
 
         for c in self.children:
             printer += str(repr(c)) + "\n"
+
+        printer.indent(-1)
+        printer += "}"
 
         return printer.__repr__()
 
