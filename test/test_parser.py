@@ -1,15 +1,15 @@
+from parser import Parser
 from statements import StatementList
 from block import Block
 from definitions import Definition
 from symbol_table import Symbol, SymbolTable, Type, standard_types
 from lexer import Lexer
-from parser import parse_program
 
 
 def test_variable_declaration():
     input = """VAR x;."""
     expected = Program()
-    actual = parse_program(Lexer(input))
+    actual = Parser(Lexer(input)).parse_program()
     assert expected == actual
 
 
@@ -25,7 +25,7 @@ begin
   end
 end."""
     expected = ...
-    actual = parse_program(Lexer(input))
+    actual = Parser(Lexer(input)).parse_program()
     assert expected == actual
 
 
@@ -47,7 +47,7 @@ BEGIN
    END
 END."""
     expected = ...
-    actual = parse_program(Lexer(input))
+    actual = Parser(Lexer(input)).parse_program()
     assert expected == actual
 
 
@@ -86,7 +86,7 @@ end;
 call primes
 ."""
     expected = ...
-    actual = parse_program(Lexer(input))
+    actual = Parser(Lexer(input)).parse_program()
     assert expected == actual
 
 
@@ -155,5 +155,5 @@ END;;
   ?n; f := 1; CALL fact; !f
 END."""
     expected = ...
-    actual = parse_program(Lexer(input))
+    actual = Parser(Lexer(input)).parse_program()
     assert expected == actual

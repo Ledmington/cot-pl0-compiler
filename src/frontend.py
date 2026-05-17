@@ -12,7 +12,7 @@ from flattening import flattening
 from layout import layout
 from lexer import Lexer
 from lowering import lowering
-from parser import parse_program
+from parser import Parser
 from support import print_dotty
 
 logging.basicConfig(
@@ -28,8 +28,7 @@ def run(source: str, root_dir: Path = Path(os.getcwd())) -> None:
     """Run the compiler pipeline."""
 
     logger.debug("Parsing source")
-    the_lexer = Lexer(source)
-    program = parse_program(the_lexer)
+    program = Parser(Lexer(source)).parse_program()
     logger.debug("Parsing complete")
 
     logger.debug("Parsed program: %s", program)
@@ -80,9 +79,7 @@ def run(source: str, root_dir: Path = Path(os.getcwd())) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="PL/0 recursive descent parser"
-    )
+    parser = argparse.ArgumentParser(description="PL/0 to Aarch64 compiler")
     parser.add_argument("filename", help="Input source file")
     args = parser.parse_args()
 
