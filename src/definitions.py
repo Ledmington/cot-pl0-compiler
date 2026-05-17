@@ -12,14 +12,23 @@ class Definition(IRNode):
         super().__init__(parent, None, symbol, body)
         self.mapping = ["symbol"]
 
-    def to_string(self, printer: Printer = Printer()) -> str:
+    def to_string(self, printer: Printer = Printer()) -> None:
         printer += "Definition {\n"
         printer.indent(1)
-        printer += "symbol: " + self.symbol.to_string()
-        printer += "body: " + self.body.to_string()
+        printer += "symbol: "
+        if self.symbol:
+            self.symbol.to_string(printer)
+        else:
+            printer += "None"
+        printer += "\n"
+        printer += "body: "
+        if self.body:
+            self.body.to_string(printer)
+        else:
+            printer += "\n"
+        printer += "\n"
         printer.indent(-1)
         printer += "}"
-        return printer.__repr__()
 
 
 class FunctionDefinition(Definition):

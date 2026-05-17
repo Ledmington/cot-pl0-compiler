@@ -38,5 +38,6 @@ def test_variable_declaration():
         ],
         body=StatementList(),
     )
+    print(expected)
     actual = parse_program(Lexer(input))
     assert expected == actual

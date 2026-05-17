@@ -51,8 +51,8 @@ class IRNode(object):
         printer.indent(-1)
         printer += "}"
 
-    def __getattr__(self, attr):
-        return self.children[self.mapping.index(attr)]
+    #    def __getattr__(self, attr):
+    #        return self.children[self.mapping.index(attr)]
 
     def __setattr__(self, attr: str, value) -> None:
         has_mapping = True if "mapping" in self.__dict__ else False

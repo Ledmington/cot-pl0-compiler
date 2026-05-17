@@ -15,9 +15,11 @@ class Block(Statement):
         parent: Optional[IRNode] = None,
         gl_sym: Optional[SymbolTable] = None,
         lc_sym: Optional[SymbolTable] = None,
-        defs: list[Definition] = None,
-        body: StatementList = None,
+        defs=None,
+        body: StatementList = StatementList(),
     ):
+        if defs is None:
+            defs = []
         if lc_sym:
             lc_sym.set_parent(gl_sym)
         super().__init__(parent, lc_sym, defs, body)
@@ -45,14 +47,20 @@ class Block(Statement):
         printer += "definitions: {\n"
         printer.indent(1)
         for definition in self.defs:
-            definition.to_string(printer)
+            if definition:
+                definition.to_string(printer)
+            else:
+                printer += "None"
             printer += "\n"
         printer.indent(-1)
         printer += "}\n"
         printer += "body: {\n"
         printer.indent(1)
         for x in self.body:
-            x.to_string(printer)
+            if x:
+                x.to_string(printer)
+            else:
+                printer += "None"
             printer += "\n"
         printer.indent(-1)
         printer += "}\n"
