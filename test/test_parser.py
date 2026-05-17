@@ -1,14 +1,17 @@
+from ast import ProgramNode, VariableDeclarationNode
 from parser import Parser
-from statements import StatementList
-from block import Block
-from definitions import Definition
-from symbol_table import Symbol, SymbolTable, Type, standard_types
 from lexer import Lexer
+from types import standard_types
 
 
 def test_variable_declaration():
     input = """VAR x;."""
-    expected = Program()
+    expected = ProgramNode(
+        variable_declarations=[
+            VariableDeclarationNode(name="x", type=standard_types["int"])
+        ],
+        function_declarations=[],
+    )
     actual = Parser(Lexer(input)).parse_program()
     assert expected == actual
 

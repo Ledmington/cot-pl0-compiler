@@ -1,6 +1,7 @@
 import logging
 from typing import Optional
 
+from ast import ProgramNode
 from block import Block
 from constant import Constant
 from debug_logger import debug_logger
@@ -74,7 +75,7 @@ class Parser(object):
             expr = self.parse_expression(symtab)
             self.expect(Token.RPAREN)
             return expr
-        
+
         self.error("factor: syntax error")
         self.get_symbol()
 
@@ -119,7 +120,9 @@ class Parser(object):
             if self._next_token in ["eql", "neq", "lss", "leq", "gtr", "geq"]:
                 self.get_symbol()
                 logger.debug(
-                    "condition operator {} {}".format(self._current_token, self._next_token)
+                    "condition operator {} {}".format(
+                        self._current_token, self._next_token
+                    )
                 )
                 op = self._current_token
                 expr2 = self.parse_expression(symtab)
@@ -173,7 +176,7 @@ class Parser(object):
         self.error("statement: syntax error")
 
     @debug_logger
-    def parse_block(self, symtab: SymbolTable) -> Block:
+    def parse_program(self, symtab: SymbolTable) -> ProgramNode:
         local_vars = SymbolTable()
         defs = []
         if self.accept(Token.CONST):
@@ -207,7 +210,7 @@ class Parser(object):
             fname = self._current_value
             self.expect(Token.SEMICOLON)
             local_vars.append(Symbol(fname, standard_types["function"]))
-            fbody = self.parse_block(local_vars)
+            fbody = self.parse_program(local_vars)
             self.expect(Token.SEMICOLON)
             defs.append(
                 FunctionDefinition(symbol=local_vars.find(fname), body=fbody)
@@ -220,10 +223,10 @@ class Parser(object):
         return the_block
 
     @debug_logger
-    def parse_program(self) -> Block:
+    def parse_program(self) -> ProgramNode:
         """Axiom"""
         global_symtab = SymbolTable()
         self.get_symbol()
-        the_program = self.parse_block(global_symtab)
+        the_program = self.parse_program(global_symtab)
         self.expect(Token.PERIOD)
         return the_program
