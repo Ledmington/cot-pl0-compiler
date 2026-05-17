@@ -39,21 +39,22 @@ class Block(Statement):
         if post:
             action(self)
 
-    def to_string(self, printer: Printer = Printer()) -> str:
+    def to_string(self, printer: Printer = Printer()) -> None:
         printer += "Block {\n"
         printer.indent(1)
         printer += "definitions: {\n"
         printer.indent(1)
         for definition in self.defs:
-            printer += definition.to_string() + "\n"
+            definition.to_string(printer)
+            printer += "\n"
         printer.indent(-1)
         printer += "}\n"
         printer += "body: {\n"
         printer.indent(1)
         for x in self.body:
-            printer += x.to_string() + "\n"
+            x.to_string(printer)
+            printer += "\n"
         printer.indent(-1)
         printer += "}\n"
         printer.indent(-1)
         printer += "}"
-        return printer.__repr__()

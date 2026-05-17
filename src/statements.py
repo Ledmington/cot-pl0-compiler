@@ -101,18 +101,15 @@ class AssignmentStatement(Statement):
     def __repr__(self) -> str:
         return self.to_string()
 
-    def to_string(self, printer: Printer = Printer()) -> str:
+    def to_string(self, printer: Printer = Printer()) -> None:
         printer += "AssignmentStatement {\n"
         printer.indent(1)
-        printer += (
-            "target: "
-            + (self.target.to_string(printer) if self.target else "None")
-            + "\n"
-        )
-        printer += "expr: " + self.expr.to_string(printer) + "\n"
+        printer += "target: " + str(self.target) + "\n"
+        printer += "expr: "
+        self.expr.to_string(printer)
+        printer += "\n"
         printer.indent(-1)
         printer += "}"
-        return printer.__repr__()
 
 
 # LOW LEVEL REPRESENTATION
@@ -293,7 +290,11 @@ class StatementList(Statement):
         printer += "StatementList {\n"
         printer.indent(1)
         for stmt in self.children:
-            printer += stmt.to_string(printer)
+            if stmt:
+                stmt.to_string(printer)
+            else:
+                printer += "None"
+            printer += "\n"
         printer.indent(-1)
         printer += "}"
         return printer.__repr__()

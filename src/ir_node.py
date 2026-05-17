@@ -32,9 +32,11 @@ class IRNode(object):
                 pass
 
     def __repr__(self) -> str:
-        return self.to_string()
+        printer = Printer()
+        self.to_string(printer)
+        return printer.__repr__()
 
-    def to_string(self, printer: Printer = Printer()) -> str:
+    def to_string(self, printer: Printer = Printer()) -> None:
         try:
             printer += self.label.codegen() + " : "
         except Exception:
@@ -48,8 +50,6 @@ class IRNode(object):
 
         printer.indent(-1)
         printer += "}"
-
-        return printer.__repr__()
 
     def __getattr__(self, attr):
         return self.children[self.mapping.index(attr)]

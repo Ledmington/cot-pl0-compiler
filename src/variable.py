@@ -17,10 +17,10 @@ class Variable(IRNode):
         super(Variable, self).__init__(parent, symtab, var)
         self.mapping = ["symbol"]
 
-    def to_string(self, printer: Printer = Printer()) -> str:
-        printer += (
-            "Variable { "
-            + (self.symbol.to_string(printer) if self.symbol else "None")
-            + " }"
-        )
-        return printer.__repr__()
+    def to_string(self, printer: Printer = Printer()) -> None:
+        printer += "Variable {\n"
+        if self.symbol:
+            self.symbol.to_string(printer)
+        else:
+            printer += "None"
+        printer += "}"

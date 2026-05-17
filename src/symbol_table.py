@@ -87,15 +87,21 @@ class Symbol(object):
         self.offset = 0
 
     def __repr__(self) -> str:
-        return self.to_string()
-
-    def to_string(self, printer: Printer = Printer()) -> str:
-        printer += self.stype.name + " " + self.name
-        printer += (
-            " " + repr(self.value) + " const" if self.value else ""
-        ) + " "
-        printer += self.storage_class if self.storage_class else ""
+        printer = Printer()
+        self.to_string(printer)
         return printer.__repr__()
+
+    def to_string(self, printer: Printer = Printer()) -> None:
+        printer += (
+            self.stype.name
+            + " "
+            + self.name
+            + " "
+            + repr(self.value)
+            + (" const" if self.value else "")
+            + " "
+            + (self.storage_class if self.storage_class else "")
+        )
 
     def codegen(self) -> str:
         return self.stype.name + " " + self.name

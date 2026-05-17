@@ -34,11 +34,12 @@ class FunctionDefinition(Definition):
             [standard_types["function"], standard_types["label"]]
         )
 
-    def to_string(self, printer: Printer = Printer()) -> str:
-        printer += "FunctionDefinition {"
+    def to_string(self, printer: Printer = Printer()):
+        printer += "FunctionDefinition {\n"
         printer.indent(1)
-        printer += "symbol: " + self.symbol.to_string()
-        printer += "body: " + self.body.to_string()
+        printer += "symbol: " + str(self.symbol) + "\n"
+        printer += "body: "
+        self.body.to_string(printer)
+        printer += "\n"
         printer.indent(-1)
         printer += "}"
-        return printer.__repr__()
