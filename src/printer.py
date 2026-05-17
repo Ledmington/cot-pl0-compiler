@@ -7,23 +7,25 @@ class Printer(object):
     _buffer: str  # keeps the string content being constructed
     _indent: str  # indentation string
     _indent_level: int  # how many times to repeat the indentation string
-    _pending_newline: bool  # tells if the last character was a newline
+    _at_line_start: bool  # tells whether the printer is currently printing the start of a line
 
     def __init__(self, indent: str = "  ") -> None:
         self._buffer = ""
         self._indent = indent
         self._indent_level = 0
-        self._pending_newline = False
+        self._at_line_start = True
 
     def __iadd__(self, msg: str) -> Printer:
-        if self._pending_newline:
-            self._buffer += self._indent * self._indent_level
-        self._pending_newline = len(msg) > 0 and msg[-1] == "\n"
         for i, c in enumerate(msg):
-            self._buffer += c
-            # adding indentation for every newline except the last one
-            if c == "\n" and i != len(msg) - 1:
+            # apply indentation only when starting a new line
+            if self._at_line_start:
                 self._buffer += self._indent * self._indent_level
+                self._at_line_start = False
+
+            self._buffer += c
+
+            self._at_line_start = c == "\n"
+
         return self
 
     def indent(self, indent_delta: int) -> None:
@@ -32,5 +34,5 @@ class Printer(object):
 
     def __repr__(self) -> str:
         assert self._indent_level == 0
-        assert not self._pending_newline
+        assert not self._at_line_start
         return self._buffer

@@ -1,7 +1,7 @@
 from printer import Printer
 
 
-def test_printer():
+def test_nested_blocks():
     printer = Printer()
     printer += "Block {\n"
     printer.indent(1)
@@ -30,7 +30,7 @@ def test_printer():
     )
 
 
-def test_printer2():
+def test_variable_indent():
     printer = Printer()
     printer += "Block {\n"
     printer.indent(2)
@@ -70,3 +70,25 @@ def test_multiline():
         "\n".join(("Block {", "  a: 1", "  b: 2", "  c: 3", "}"))
         == printer.__repr__()
     )
+
+
+def test_empty_line():
+    printer = Printer()
+    printer += "Block {\n"
+    printer.indent(1)
+    printer += ""
+    printer.indent(-1)
+    printer += "}"
+    assert "\n".join(("Block {", "}")) == printer.__repr__()
+
+
+def test_nested_empty_line():
+    printer = Printer()
+    printer.indent(1)
+    printer += "Block {\n"
+    printer.indent(1)
+    printer += ""
+    printer.indent(-1)
+    printer += "}"
+    printer.indent(-1)
+    assert "\n".join(("  Block {", "  }")) == printer.__repr__()
