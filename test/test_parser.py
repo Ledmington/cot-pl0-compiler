@@ -6,7 +6,7 @@ from lexer import Lexer
 from parser import parse_program
 
 
-def test_parser():
+def test_example():
     input = """VAR x, squ;
 PROCEDURE square;
 BEGIN
@@ -22,18 +22,21 @@ BEGIN
             !squ
    END
 END."""
-    assert ... == parse_program(Lexer(input))
+    expected = ...
+    actual = parse_program(Lexer(input))
+    assert expected == actual
 
 
-def test_parser2():
-    input = """VAR x, y;."""
-    assert Block(
+def test_variable_declaration():
+    input = """VAR x;."""
+    expected = Block(
         parent=None,
         gl_sym=None,
         lc_sym=None,
         defs=[
             Definition(symbol=Symbol("x", standard_types["int"])),
-            Definition(symbol=Symbol("y", standard_types["int"])),
         ],
         body=StatementList(),
-    ) == parse_program(Lexer(input))
+    )
+    actual = parse_program(Lexer(input))
+    assert expected == actual

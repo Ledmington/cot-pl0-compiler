@@ -1,6 +1,7 @@
 from typing import Optional
 
 from ir_node import IRNode
+from printer import Printer
 from symbol_table import SymbolTable
 
 
@@ -16,13 +17,10 @@ class Variable(IRNode):
         super(Variable, self).__init__(parent, symtab, var)
         self.mapping = ["symbol"]
 
-    def to_string(self, indent: str, indent_level: int) -> str:
-        return (
+    def to_string(self, printer: Printer = Printer()) -> str:
+        printer += (
             "Variable { "
-            + (
-                self.symbol.to_string(indent, indent_level)
-                if self.symbol
-                else "None"
-            )
+            + (self.symbol.to_string(printer) if self.symbol else "None")
             + " }"
         )
+        return printer.__repr__()

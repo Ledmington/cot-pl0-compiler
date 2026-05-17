@@ -18,7 +18,8 @@ class Block(Statement):
         defs: list[Definition] = None,
         body: StatementList = None,
     ):
-        lc_sym.set_parent(gl_sym)
+        if lc_sym:
+            lc_sym.set_parent(gl_sym)
         super().__init__(parent, lc_sym, defs, body)
         self.mapping = ["defs", "body"]
 

@@ -99,31 +99,20 @@ class AssignmentStatement(Statement):
         yield self
 
     def __repr__(self) -> str:
-        return self.to_string(indent="  ", indent_level=0)
+        return self.to_string()
 
-    def to_string(self, indent: str, indent_level: int) -> str:
-        s = ""
-        s += indent * indent_level + "AssignmentStatement {\n"
-        indent_level += 1
-        s += (
-            indent * indent_level
-            + "target: "
-            + (
-                self.target.to_string(indent, indent_level + 1)
-                if self.target
-                else "None"
-            )
+    def to_string(self, printer: Printer = Printer()) -> str:
+        printer += "AssignmentStatement {\n"
+        printer.indent(1)
+        printer += (
+            "target: "
+            + (self.target.to_string(printer) if self.target else "None")
             + "\n"
         )
-        s += (
-            indent * indent_level
-            + "expr: "
-            + self.expr.to_string(indent, indent_level + 1)
-            + "\n"
-        )
-        indent_level -= 1
-        s += indent * indent_level + "}"
-        return s
+        printer += "expr: " + self.expr.to_string(printer) + "\n"
+        printer.indent(-1)
+        printer += "}"
+        return printer.__repr__()
 
 
 # LOW LEVEL REPRESENTATION
