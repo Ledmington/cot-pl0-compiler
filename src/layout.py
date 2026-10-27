@@ -1,7 +1,7 @@
 import logging
 
 from block import Block
-from symbol_table import standard_types
+from pl0_types import standard_types
 
 logger = logging.getLogger("data_layout")
 

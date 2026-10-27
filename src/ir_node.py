@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable, Optional, Any
+from typing import Any, Callable, Optional
 
 from printer import Printer
 from symbol_table import SymbolTable

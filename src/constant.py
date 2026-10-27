@@ -1,7 +1,8 @@
 from typing import Optional
 
 from ir_node import IRNode
-from symbol_table import SymbolTable, standard_types
+from pl0_types import standard_types
+from symbol_table import SymbolTable
 
 
 class Constant(IRNode):

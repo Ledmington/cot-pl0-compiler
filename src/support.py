@@ -1,5 +1,3 @@
-import logging
-
 __doc__ = """Support functions for visiting the AST
 These functions expose high level interfaces (passes) for actions that can be applied to multiple IR nodes."""
 

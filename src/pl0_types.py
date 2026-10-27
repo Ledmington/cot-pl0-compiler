@@ -1,4 +1,4 @@
-from symbol_table import Symbol, LabelSymbol
+from symbol_table import LabelSymbol, Symbol
 
 basetypes = ["Int", "Float", "Label", "Struct", "Function"]
 qualifiers = ["unsigned"]

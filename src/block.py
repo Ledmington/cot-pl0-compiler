@@ -1,6 +1,5 @@
 from typing import Callable, Optional
 
-from definitions import Definition
 from ir_node import IRNode
 from printer import Printer
 from statements import Statement, StatementList

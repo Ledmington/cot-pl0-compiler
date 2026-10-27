@@ -1,7 +1,5 @@
 import logging
-from typing import Optional
 
-from ast import ProgramNode
 from block import Block
 from constant import Constant
 from debug_logger import debug_logger
@@ -13,6 +11,8 @@ from ir2 import (
     UnaryExpression,
 )
 from lexer import Lexer, Token
+from pl0_ast import ProgramNode
+from pl0_types import standard_types
 from statements import (
     AssignmentStatement,
     CallStatement,
@@ -22,7 +22,7 @@ from statements import (
     StatementList,
     WhileStatement,
 )
-from symbol_table import Symbol, SymbolTable, standard_types
+from symbol_table import Symbol, SymbolTable
 from variable import Variable
 
 logger = logging.getLogger("parser")

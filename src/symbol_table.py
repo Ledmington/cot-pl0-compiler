@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from printer import Printer
-from types import Type
+
+if TYPE_CHECKING:
+    from pl0_types import Type
 
 logger = logging.getLogger("symtab")
 
@@ -88,6 +90,8 @@ class SymbolTable(list):
 
 
 def getRegister(stype: str = "int") -> Symbol:
+    from pl0_types import standard_types
+
     reg = standard_types[stype]()
     reg.storage_class = "register"
     return reg

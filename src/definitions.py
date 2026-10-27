@@ -1,8 +1,8 @@
 from typing import Optional
 
 from ir_node import IRNode
+from pl0_types import standard_types
 from printer import Printer
-from symbol_table import standard_types
 
 
 class Definition(IRNode):

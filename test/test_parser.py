@@ -1,7 +1,7 @@
-from ast import ProgramNode, VariableDeclarationNode
-from parser import Parser
 from lexer import Lexer
-from types import standard_types
+from parser import Parser
+from pl0_ast import ProgramNode, VariableDeclarationNode
+from pl0_types import standard_types
 
 
 def test_variable_declaration():

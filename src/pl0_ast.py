@@ -1,4 +1,4 @@
-from types import Type
+from pl0_types import Type
 
 
 class ASTNode(object):
